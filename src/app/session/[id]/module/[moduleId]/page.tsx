@@ -44,6 +44,9 @@ function ModuleContent() {
       if (data.started) setStarted(true);
       if (data.showResults) setShowResults(true);
       if (data.teams) setTeams(data.teams as Team[]);
+      if (data.question && !started) setQuestion(data.question as string);
+      if (data.options && !started) setOptions(data.options as string[]);
+      if (data.timeLimit && !started) setTimeLimit(data.timeLimit as number);
     });
     return unsub;
   }, [id, moduleId]);
