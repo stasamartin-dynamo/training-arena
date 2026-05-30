@@ -10,11 +10,11 @@ import toast from 'react-hot-toast';
 import { LibraryItem, ModuleType } from '@/types/library';
 
 const TYPE_MAP: Record<string, ModuleType> = {
-  'kvíz': 'quiz', 'quiz': 'quiz',
-  'hlasování': 'vote', 'vote': 'vote', 'anketa': 'vote',
-  'scénář': 'scenario', 'scenar': 'scenario', 'scenario': 'scenario',
+  'kvíz': 'quiz', 'kviz': 'quiz', 'quiz': 'quiz',
+  'hlasování': 'vote', 'hlasovani': 'vote', 'vote': 'vote', 'anketa': 'vote',
+  'scénář': 'scenario', 'scenár': 'scenario', 'scenar': 'scenario', 'scenario': 'scenario',
   'reflexe': 'reflection', 'reflection': 'reflection',
-  'gamifikace': 'gamification', 'gamification': 'gamification',
+  'gamifikace': 'gamification', 'gamifikace': 'gamification', 'gamification': 'gamification',
 };
 
 interface PreviewItem {
