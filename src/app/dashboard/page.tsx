@@ -53,8 +53,11 @@ export default function Dashboard() {
   const deleteSession = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (!confirm('Smazat tuto session?')) return;
-    await deleteDoc(doc(db, 'sessions', id));
-    toast.success('Session smazána');
+    setSessions(prev => prev.filter(s => s.id !== id));
+    try {
+      await deleteDoc(doc(db, 'sessions', id));
+      toast.success('Session smazána');
+    } catch { toast.error('Chyba při mazání'); }
   };
 
   if (loading) return (
