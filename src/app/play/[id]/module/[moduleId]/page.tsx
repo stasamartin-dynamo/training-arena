@@ -97,15 +97,11 @@ function PlayModuleContent() {
         const basePoints = (moduleData.points as number) ?? 100;
         let earned = 0;
         if (!correctAnswer || correctAnswer === '') {
-          // Hlasování nebo bez správné odpovědi — body za rychlost
-          earned = basePoints + timeLeft * 2;
+          // Hlasování — fixní body bez bonusu
+          earned = basePoints;
         } else {
-          // Je definována správná odpověď
-          if (ans === correctAnswer) {
-            earned = basePoints + timeLeft * 2;
-          } else {
-            earned = 0;
-          }
+          // Správná/špatná odpověď — pouze fixní body
+          earned = ans === correctAnswer ? basePoints : 0;
         }
         if (earned > 0) {
           await updateDoc(doc(db, 'sessions', id as string, 'participants', participantId), {
