@@ -7,12 +7,13 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
-import { LibraryItem, ModuleType } from '@/types/library';
 
-const TYPE_MAP: Record<string, ModuleType> = {
-  'kvíz': 'quiz', 'kviz': 'quiz', 'quiz': 'quiz',
-  'hlasování': 'vote', 'hlasovani': 'vote', 'vote': 'vote', 'anketa': 'vote',
-  'scénář': 'scenario', 'scenar': 'scenario', 'scenario': 'scenario',
+type ModuleType = 'quiz' | 'vote' | 'scenario' | 'reflection' | 'gamification';
+
+const TYPE_MAP: { [key: string]: ModuleType } = {
+  'kviz': 'quiz', 'kvíz': 'quiz', 'quiz': 'quiz',
+  'hlasovani': 'vote', 'hlasování': 'vote', 'vote': 'vote', 'anketa': 'vote',
+  'scenar': 'scenario', 'scénář': 'scenario', 'scenario': 'scenario',
   'reflexe': 'reflection', 'reflection': 'reflection',
   'gamifikace': 'gamification', 'gamification': 'gamification',
 };
@@ -25,6 +26,18 @@ interface PreviewItem {
   timeLimit: number;
   valid: boolean;
   error?: string;
+}
+
+interface SavedItem {
+  id: string;
+  lektorId: string;
+  type: ModuleType;
+  title: string;
+  question: string;
+  options: string[];
+  timeLimit: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export default function ImportPage() {
@@ -45,16 +58,21 @@ export default function ImportPage() {
         const data = new Uint8Array(ev.target?.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }) as string[][];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }) as unknown[][];
         const items: PreviewItem[] = [];
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
           if (!row || row.length === 0 || !row[0]) continue;
-          const typRaw = String(row[0] || '').toLowerCase().trim();
-          const typ = TYPE_MAP[typRaw];
+          const typRaw = String(row[0] || '').toLowerCase().trim()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '');
+          const typDirect = String(row[0] || '').toLowerCase().trim();
+          const typ = TYPE_MAP[typDirect] || TYPE_MAP[typRaw];
           const title = String(row[1] || '').trim();
           const question = String(row[2] || '').trim();
-          const opts = [row[3], row[4], row[5], row[6]].map(o => String(o || '').trim()).filter(Boolean);
+          const opts = [row[3], row[4], row[5], row[6]]
+            .map(o => o != null ? String(o).trim() : '')
+            .filter(Boolean);
           const time = Number(row[7]) || 0;
           if (!typ) {
             items.push({ type: 'quiz', title: title || `Řádek ${i}`, question, options: opts, timeLimit: time, valid: false, error: `Neznámý typ: "${row[0]}"` });
@@ -76,7 +94,7 @@ export default function ImportPage() {
     setImporting(true);
     try {
       const validItems = preview.filter(i => i.valid);
-      const savedItems: LibraryItem[] = [];
+      const savedItems: SavedItem[] = [];
       for (const item of validItems) {
         const ref = await addDoc(collection(db, 'library'), {
           lektorId: user.uid, type: item.type, title: item.title,
@@ -98,7 +116,7 @@ export default function ImportPage() {
     } catch { toast.error('Chyba při importu'); } finally { setImporting(false); }
   };
 
-  const typeInfo: Record<string, {icon: string; label: string}> = {
+  const typeInfo: { [key: string]: { icon: string; label: string } } = {
     quiz: { icon: '❓', label: 'Kvíz' }, vote: { icon: '🗳️', label: 'Hlasování' },
     scenario: { icon: '🎭', label: 'Scénář' }, reflection: { icon: '💭', label: 'Reflexe' },
     gamification: { icon: '🏆', label: 'Gamifikace' },
