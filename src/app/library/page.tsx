@@ -109,6 +109,9 @@ export default function LibraryPage() {
             <button onClick={() => router.push('/sets')} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
               🗂️ Sady
             </button>
+            <button onClick={() => router.push('/library/import')} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              📥 Import z Excelu
+            </button>
             <button onClick={openNew} className="btn-primary" style={{ padding: '10px 20px' }}>
               ➕ Nová položka
             </button>
