@@ -4,13 +4,24 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { Session } from '@/types';
 import toast from 'react-hot-toast';
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
+
+const MODULE_COLORS: Record<string, string> = {
+  waiting: 'rgba(234,179,8,0.2)',
+  active: 'rgba(16,185,129,0.2)',
+  finished: 'rgba(100,116,139,0.2)',
+};
+const MODULE_TEXT: Record<string, string> = {
+  waiting: '#fbbf24',
+  active: '#34d399',
+  finished: '#94a3b8',
+};
 
 export default function Dashboard() {
   const { user, logOut, loading } = useAuth();
@@ -30,7 +41,7 @@ export default function Dashboard() {
       where('lektorId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-    const unsub = onSnapshot(q, (snap) => {
+    const unsub = onSnapshot(q, snap => {
       setSessions(snap.docs.map(d => ({ id: d.id, ...d.data() } as Session)));
     });
     return unsub;
@@ -42,96 +53,123 @@ export default function Dashboard() {
     try {
       const code = generateCode();
       const docRef = await addDoc(collection(db, 'sessions'), {
-        code,
-        lektorId: user.uid,
-        lektorName: user.email,
-        title: title.trim(),
-        status: 'waiting',
-        currentModule: null,
-        createdAt: Date.now(),
+        code, lektorId: user.uid, lektorName: user.email,
+        title: title.trim(), status: 'waiting', currentModule: null, createdAt: Date.now(),
       });
       toast.success(`Session vytvořena! Kód: ${code}`);
       setTitle('');
       router.push(`/session/${docRef.id}`);
-    } catch {
-      toast.error('Chyba při vytváření session');
-    } finally {
-      setCreating(false);
-    }
+    } catch { toast.error('Chyba při vytváření'); } finally { setCreating(false); }
+  };
+
+  const deleteSession = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('Smazat tuto session?')) return;
+    await deleteDoc(doc(db, 'sessions', id));
+    toast.success('Session smazána');
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
-      <div className="text-white text-xl">Načítání...</div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0a1e' }}>
+      <div style={{ color: 'white', fontSize: '18px' }}>Načítání...</div>
     </div>
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <main style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
+      padding: '24px',
+    }}>
+      {/* BG */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)' }} />
+      </div>
+
+      <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div>
-            <h1 className="text-3xl font-black text-white">🏟️ Training Arena</h1>
-            <p className="text-purple-300">{user?.email}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+              <span style={{ fontSize: '32px' }}>🏟️</span>
+              <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff', margin: 0 }}>Training Arena</h1>
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '14px' }}>{user?.email}</p>
           </div>
-          <button
-            onClick={logOut}
-            className="bg-white/10 text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all"
-          >
-            Odhlásit
-          </button>
+          <button onClick={logOut} style={{
+            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.7)', padding: '8px 16px', borderRadius: '10px',
+            cursor: 'pointer', fontSize: '14px',
+          }}>Odhlásit</button>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20">
-          <h2 className="text-xl font-bold text-white mb-4">➕ Nová session</h2>
-          <div className="flex gap-3">
+        {/* Create session */}
+        <div className="glass card" style={{ marginBottom: '24px' }}>
+          <h2 style={{ color: '#fff', fontWeight: 700, marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>
+            ➕ Nová session
+          </h2>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              type="text" value={title}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Název školení (např. Obchodní dovednosti)"
-              className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400"
-              onKeyDown={(e) => e.key === 'Enter' && createSession()}
+              className="input-field"
+              onKeyDown={e => e.key === 'Enter' && createSession()}
+              style={{ flex: 1 }}
             />
-            <button
-              onClick={createSession}
-              disabled={creating || !title.trim()}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-50"
-            >
+            <button onClick={createSession} disabled={creating || !title.trim()} className="btn-primary"
+              style={{ whiteSpace: 'nowrap', padding: '12px 24px' }}>
               {creating ? '...' : 'Vytvořit'}
             </button>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h2 className="text-xl font-bold text-white">📋 Moje sessions</h2>
+        {/* Sessions list */}
+        <div>
+          <h2 style={{ color: '#fff', fontWeight: 700, marginBottom: '16px', fontSize: '18px' }}>
+            📋 Moje sessions ({sessions.length})
+          </h2>
           {sessions.length === 0 && (
-            <div className="bg-white/10 rounded-2xl p-8 text-center text-purple-300">
-              Zatím žádné sessions. Vytvořte první!
+            <div className="glass card" style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '48px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎯</div>
+              <p>Zatím žádné sessions. Vytvořte první!</p>
             </div>
           )}
-          {sessions.map((session) => (
-            <div
-              key={session.id}
-              onClick={() => router.push(`/session/${session.id}`)}
-              className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 cursor-pointer hover:bg-white/20 transition-all"
-            >
-              <div className="flex justify-between items-center">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {sessions.map(session => (
+              <div
+                key={session.id}
+                onClick={() => router.push(`/session/${session.id}`)}
+                className="glass"
+                style={{
+                  borderRadius: '16px', padding: '20px', cursor: 'pointer',
+                  transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+              >
                 <div>
-                  <h3 className="text-white font-bold text-lg">{session.title}</h3>
-                  <p className="text-purple-300 text-sm">Kód: <span className="font-mono font-bold text-purple-200">{session.code}</span></p>
+                  <h3 style={{ color: '#fff', fontWeight: 700, margin: '0 0 4px', fontSize: '16px' }}>{session.title}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '13px' }}>
+                    Kód: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#a78bfa', fontSize: '16px' }}>{session.code}</span>
+                    <span style={{ marginLeft: '12px' }}>{new Date(session.createdAt).toLocaleDateString('cs')}</span>
+                  </p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  session.status === 'active' ? 'bg-green-500/20 text-green-300' :
-                  session.status === 'finished' ? 'bg-gray-500/20 text-gray-300' :
-                  'bg-yellow-500/20 text-yellow-300'
-                }`}>
-                  {session.status === 'active' ? '🟢 Aktivní' :
-                   session.status === 'finished' ? '⚫ Ukončená' : '🟡 Čeká'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{
+                    background: MODULE_COLORS[session.status], color: MODULE_TEXT[session.status],
+                    padding: '4px 12px', borderRadius: '999px', fontSize: '13px', fontWeight: 600,
+                  }}>
+                    {session.status === 'active' ? '🟢 Aktivní' : session.status === 'finished' ? '⚫ Ukončená' : '🟡 Čeká'}
+                  </span>
+                  <button
+                    onClick={e => deleteSession(e, session.id)}
+                    style={{ background: 'rgba(239,68,68,0.15)', border: 'none', color: '#f87171', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+                  >🗑️</button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </main>

@@ -38,9 +38,9 @@ export interface Question {
 }
 
 export interface Answer {
-  participantId: string;
+  participantId?: string;
   nickname: string;
-  questionId: string;
+  questionId?: string;
   answer: string | string[];
   answeredAt: number;
   score?: number;
@@ -52,4 +52,17 @@ export interface Team {
   color: string;
   score: number;
   memberIds: string[];
+}
+
+export interface ModuleData {
+  type: string;
+  status: string;
+  question?: string;
+  options?: string[];
+  timeLimit?: number;
+  started?: boolean;
+  startedAt?: number;
+  showResults?: boolean;
+  teams?: Team[];
+  createdAt: number;
 }

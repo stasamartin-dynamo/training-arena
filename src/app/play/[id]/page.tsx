@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, where, limit, getDocs, updateDoc } from 'firebase/firestore';
 import { Session } from '@/types';
 
 export default function PlayPage() {
@@ -11,7 +11,8 @@ export default function PlayPage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState('');
-  const [currentModule, setCurrentModule] = useState<{id: string, type: string} | null>(null);
+  const [score, setScore] = useState(0);
+  const [participantCount, setParticipantCount] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem('nickname');
@@ -21,83 +22,124 @@ export default function PlayPage() {
 
   useEffect(() => {
     if (!id) return;
-    const unsub = onSnapshot(doc(db, 'sessions', id as string), async (snap) => {
-      if (!snap.exists()) return;
-      const s = { id: snap.id, ...snap.data() } as Session;
-      setSession(s);
-
-      if (s.currentModule) {
-        const modDoc = await getDocs(
-          query(collection(db, 'sessions', id as string, 'modules'),
-          where('status', '==', 'active'), limit(1))
-        );
-        if (!modDoc.empty) {
-          const mod = modDoc.docs[0];
-          setCurrentModule({ id: mod.id, type: mod.data().type });
-        }
-      } else {
-        setCurrentModule(null);
+    const unsub = onSnapshot(collection(db, 'sessions', id as string, 'participants'), snap => {
+      setParticipantCount(snap.size);
+      const participantId = localStorage.getItem('participantId');
+      if (participantId) {
+        const me = snap.docs.find(d => d.id === participantId);
+        if (me) setScore(me.data().score || 0);
       }
     });
     return unsub;
   }, [id]);
 
   useEffect(() => {
-    if (currentModule) {
-      router.push(`/play/${id}/module/${currentModule.id}?type=${currentModule.type}`);
-    }
-  }, [currentModule, id, router]);
+    if (!id) return;
+    const unsub = onSnapshot(doc(db, 'sessions', id as string), async snap => {
+      if (!snap.exists()) return;
+      const s = { id: snap.id, ...snap.data() } as Session;
+      setSession(s);
+
+      if (s.currentModule) {
+        const modSnap = await getDocs(
+          query(collection(db, 'sessions', id as string, 'modules'),
+            where('status', '==', 'active'), limit(1))
+        );
+        if (!modSnap.empty) {
+          const mod = modSnap.docs[0];
+          router.push(`/play/${id}/module/${mod.id}?type=${mod.data().type}`);
+        }
+      }
+    });
+    return unsub;
+  }, [id, router]);
 
   if (!session) return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
-      <div className="text-white text-xl">Načítání...</div>
+    <div style={{ minHeight: '100vh', background: '#0f0a1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+      Načítání...
     </div>
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-      <div className="text-center max-w-md w-full">
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <div className="text-6xl mb-4">🏟️</div>
-          <h1 className="text-3xl font-black text-white mb-2">Training Arena</h1>
-          <p className="text-purple-300 mb-6">{session.title}</p>
+    <main style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+    }}>
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(8,145,178,0.1) 0%, transparent 70%)' }} />
+      </div>
 
-          <div className="bg-white/10 rounded-xl p-4 mb-6">
-            <p className="text-purple-300 text-sm">Přihlášen jako</p>
-            <p className="text-white font-bold text-2xl">{nickname}</p>
+      <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
+        <div className="glass card" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '64px', marginBottom: '12px' }}>🏟️</div>
+          <h1 style={{ color: '#fff', fontWeight: 900, fontSize: '26px', margin: '0 0 4px' }}>Training Arena</h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 24px' }}>{session.title}</p>
+
+          {/* Player info */}
+          <div style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '16px', padding: '16px', marginBottom: '24px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 4px', fontSize: '13px' }}>Přihlášen jako</p>
+            <p style={{ color: '#fff', fontWeight: 900, fontSize: '24px', margin: '0 0 8px' }}>{nickname}</p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
+              <div>
+                <p style={{ color: '#fbbf24', fontWeight: 700, fontSize: '20px', margin: 0 }}>{score}</p>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', margin: 0 }}>bodů</p>
+              </div>
+              <div>
+                <p style={{ color: '#34d399', fontWeight: 700, fontSize: '20px', margin: 0 }}>{participantCount}</p>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', margin: 0 }}>účastníků</p>
+              </div>
+            </div>
           </div>
 
           {session.status === 'waiting' && (
-            <div className="space-y-3">
-              <div className="flex justify-center">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce mx-1" style={{animationDelay: '0ms'}}></div>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce mx-1" style={{animationDelay: '150ms'}}></div>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce mx-1" style={{animationDelay: '300ms'}}></div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '12px' }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{
+                    width: '10px', height: '10px', borderRadius: '50%', background: '#fbbf24',
+                    animation: 'bounce-dot 1.4s ease-in-out infinite',
+                    animationDelay: `${i * 0.16}s`,
+                  }} />
+                ))}
               </div>
-              <p className="text-yellow-300 font-medium">Čekáme na lektora...</p>
-              <p className="text-purple-400 text-sm">Lektor brzy spustí školení</p>
+              <p style={{ color: '#fbbf24', fontWeight: 600, margin: '0 0 4px' }}>Čekáme na lektora...</p>
+              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', margin: 0 }}>Session brzy začne</p>
             </div>
           )}
 
-          {session.status === 'active' && !currentModule && (
-            <div className="space-y-3">
-              <div className="flex justify-center">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse mx-1"></div>
+          {session.status === 'active' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#34d399', animation: 'pulse 2s ease-in-out infinite' }} />
               </div>
-              <p className="text-green-300 font-medium">Školení probíhá</p>
-              <p className="text-purple-400 text-sm">Čekej na další aktivitu...</p>
+              <p style={{ color: '#34d399', fontWeight: 600, margin: '0 0 4px' }}>Školení probíhá</p>
+              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', margin: 0 }}>Čekej na další aktivitu...</p>
             </div>
           )}
 
           {session.status === 'finished' && (
-            <div className="space-y-3">
-              <p className="text-4xl">🎉</p>
-              <p className="text-white font-bold text-xl">Školení skončilo!</p>
-              <p className="text-purple-300">Děkujeme za účast</p>
+            <div>
+              <p style={{ fontSize: '48px', margin: '0 0 12px' }}>🎉</p>
+              <p style={{ color: '#fff', fontWeight: 900, fontSize: '22px', margin: '0 0 8px' }}>Školení skončilo!</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 16px' }}>Tvé celkové skóre:</p>
+              <p style={{ color: '#fbbf24', fontWeight: 900, fontSize: '48px', margin: 0 }}>{score} b</p>
+              <p style={{ color: 'rgba(255,255,255,0.4)', margin: '8px 0 0', fontSize: '14px' }}>Děkujeme za účast!</p>
             </div>
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes bounce-dot {
+          0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.5); }
+        }
+      `}</style>
     </main>
   );
 }

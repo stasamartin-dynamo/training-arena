@@ -29,78 +29,100 @@ export default function Home() {
         toast.success('Účet vytvořen!');
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Něco se pokazilo';
-      toast.error(message);
+      const msg = err instanceof Error ? err.message : 'Chyba přihlášení';
+      if (msg.includes('invalid-credential')) toast.error('Špatný email nebo heslo');
+      else if (msg.includes('email-already')) toast.error('Email již existuje');
+      else toast.error('Něco se pokazilo');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-black text-white mb-2">🏟️ Training Arena</h1>
-          <p className="text-purple-200 text-lg">Interaktivní platforma pro lektory</p>
+    <main style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+    }}>
+      {/* Background decorations */}
+      <div style={{
+        position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0
+      }}>
+        <div style={{
+          position: 'absolute', top: '-20%', left: '-10%',
+          width: '600px', height: '600px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-20%', right: '-10%',
+          width: '500px', height: '500px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(219,39,119,0.12) 0%, transparent 70%)',
+        }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '8px' }}>🏟️</div>
+          <h1 style={{ fontSize: '36px', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-1px' }}>
+            Training Arena
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '8px', fontSize: '15px' }}>
+            Interaktivní platforma pro lektory
+          </p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
-          <div className="flex mb-6 bg-white/10 rounded-xl p-1">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                isLogin ? 'bg-white text-purple-900' : 'text-white'
-              }`}
-            >
-              Přihlásit se
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                !isLogin ? 'bg-white text-purple-900' : 'text-white'
-              }`}
-            >
-              Registrovat
-            </button>
+        <div className="glass card" style={{ marginBottom: '16px' }}>
+          {/* Tab switcher */}
+          <div style={{
+            display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: '12px',
+            padding: '4px', marginBottom: '24px',
+          }}>
+            {['Přihlásit se', 'Registrovat'].map((label, i) => (
+              <button
+                key={label}
+                onClick={() => setIsLogin(i === 0)}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
+                  background: (i === 0) === isLogin ? 'linear-gradient(135deg, #7c3aed, #db2777)' : 'transparent',
+                  color: 'white', fontWeight: 600, cursor: 'pointer', fontSize: '14px',
+                  transition: 'all 0.2s',
+                }}
+              >{label}</button>
+            ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label className="block text-purple-200 text-sm mb-1">Email</label>
+              <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+                Email
+              </label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400"
-                placeholder="lektor@example.com"
-                required
+                type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="lektor@example.com" required className="input-field"
               />
             </div>
             <div>
-              <label className="block text-purple-200 text-sm mb-1">Heslo</label>
+              <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+                Heslo
+              </label>
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400"
-                placeholder="••••••••"
-                required
+                type="password" value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••" required className="input-field"
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold text-lg hover:opacity-90 transition-all disabled:opacity-50"
-            >
+            <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '16px', marginTop: '8px' }}>
               {loading ? 'Načítání...' : isLogin ? 'Přihlásit se' : 'Vytvořit účet'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-purple-300 mt-4 text-sm">
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '14px' }}>
           Účastník školení?{' '}
-          <a href="/join" className="text-white underline font-medium">
-            Připojit se přes kód
+          <a href="/join" style={{ color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>
+            Připojit se přes kód →
           </a>
         </p>
       </div>

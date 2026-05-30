@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, addDoc, collection } from 'firebase/firestore';
+import { doc, onSnapshot, addDoc, collection, updateDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import { Suspense } from 'react';
 
-const COLORS = ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b'];
+const COLORS = ['#7c3aed', '#db2777', '#0891b2', '#059669', '#d97706'];
 
-export default function PlayModulePage() {
+function PlayModuleContent() {
   const { id, moduleId } = useParams();
   const searchParams = useSearchParams();
-  const type = searchParams.get('type');
+  const type = searchParams.get('type') || '';
   const router = useRouter();
 
   const [moduleData, setModuleData] = useState<Record<string, unknown>>({});
@@ -19,59 +20,92 @@ export default function PlayModulePage() {
   const [userAnswer, setUserAnswer] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [openAnswer, setOpenAnswer] = useState('');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [myTeam, setMyTeam] = useState<{name: string; color: string} | null>(null);
 
   useEffect(() => {
     if (!id || !moduleId) return;
-    const unsub = onSnapshot(doc(db, 'sessions', id as string, 'modules', moduleId as string), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setModuleData(data);
-        if (data.showResults) setShowResults(true);
-        if (data.status === 'finished' && !data.showResults) {
-          router.push(`/play/${id}`);
-        }
+    const unsub = onSnapshot(doc(db, 'sessions', id as string, 'modules', moduleId as string), snap => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      setModuleData(data);
+
+      if (data.showResults) setShowResults(true);
+      if (data.status === 'finished' && !data.showResults) {
+        setTimeout(() => router.push(`/play/${id}`), 1000);
+      }
+      if (data.started && data.timeLimit && !answered) {
+        const elapsed = (Date.now() - (data.startedAt as number)) / 1000;
+        const remaining = Math.max(0, (data.timeLimit as number) - elapsed);
+        setTimeLeft(Math.floor(remaining));
+      }
+      // Find my team
+      if (data.teams && type === 'gamification') {
+        const participantId = localStorage.getItem('participantId');
+        const teams = data.teams as {id: string; name: string; color: string; memberIds: string[]}[];
+        const myT = teams.find(t => t.memberIds.includes(participantId || ''));
+        if (myT) setMyTeam({ name: myT.name, color: myT.color });
       }
     });
     return unsub;
-  }, [id, moduleId, router]);
+  }, [id, moduleId, router, answered, type]);
 
-  const submitAnswer = async (ans: string) => {
+  useEffect(() => {
+    if (timeLeft > 0 && !answered) {
+      const t = setTimeout(() => setTimeLeft(v => v - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [timeLeft, answered]);
+
+  const submitAnswer = useCallback(async (ans: string) => {
     if (answered) return;
     const nickname = localStorage.getItem('nickname') || 'Anonym';
+    const participantId = localStorage.getItem('participantId');
     setUserAnswer(ans);
     setAnswered(true);
-    await addDoc(collection(db, 'sessions', id as string, 'modules', moduleId as string, 'answers'), {
-      nickname,
-      answer: ans,
-      answeredAt: Date.now(),
-    });
-    toast.success('Odpověď odeslána! ✅');
-  };
+    try {
+      await addDoc(collection(db, 'sessions', id as string, 'modules', moduleId as string, 'answers'), {
+        nickname, answer: ans, answeredAt: Date.now(),
+        participantId: participantId || '',
+        timeBonus: timeLeft,
+      });
+      // Award points based on speed
+      if (participantId && type !== 'reflection') {
+        const points = 100 + timeLeft * 2;
+        await updateDoc(doc(db, 'sessions', id as string, 'participants', participantId), {
+          score: (await import('firebase/firestore').then(m => m.increment(points))),
+        });
+      }
+      toast.success('Odpověď odeslána! ✅');
+    } catch { toast.error('Chyba při odesílání'); }
+  }, [answered, id, moduleId, timeLeft, type]);
 
-  const submitOpen = async () => {
+  const submitOpen = useCallback(async () => {
     if (!openAnswer.trim()) return;
     await submitAnswer(openAnswer.trim());
-  };
+  }, [openAnswer, submitAnswer]);
 
   if (!moduleData.started) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-        <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <div className="text-5xl mb-4">⏳</div>
-          <p className="text-white font-bold text-xl">Lektor připravuje aktivitu...</p>
+      <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+          <p style={{ color: '#fff', fontWeight: 700, fontSize: '20px', margin: 0 }}>Lektor připravuje aktivitu...</p>
         </div>
       </main>
     );
   }
 
+  const typeLabel: Record<string, string> = { quiz: '❓ Kvíz', vote: '🗳️ Hlasování', scenario: '🎭 Scénář', gamification: '🏆 Gamifikace', reflection: '💭 Reflexe' };
+
   if (showResults) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-        <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 w-full max-w-md">
-          <div className="text-5xl mb-4">📊</div>
-          <p className="text-white font-bold text-xl mb-2">Výsledky jsou na plátně!</p>
-          {userAnswer && <p className="text-purple-300">Tvá odpověď: <span className="text-white font-bold">{userAnswer}</span></p>}
-          <button onClick={() => router.push(`/play/${id}`)} className="mt-4 bg-purple-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-purple-600">
+      <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+          <p style={{ color: '#fff', fontWeight: 700, fontSize: '20px', marginBottom: '8px' }}>Výsledky jsou na plátně!</p>
+          {userAnswer && <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 20px' }}>Tvá odpověď: <span style={{ color: '#a78bfa', fontWeight: 700 }}>{userAnswer}</span></p>}
+          <button onClick={() => router.push(`/play/${id}`)} className="btn-primary" style={{ padding: '12px 24px' }}>
             Zpět do čekárny
           </button>
         </div>
@@ -81,57 +115,87 @@ export default function PlayModulePage() {
 
   if (answered) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-        <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-          <div className="text-5xl mb-4">✅</div>
-          <p className="text-white font-bold text-xl">Odpověď odeslána!</p>
-          <p className="text-purple-300 mt-2">Čekáme na ostatní...</p>
+      <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
+          <p style={{ color: '#fff', fontWeight: 700, fontSize: '22px', margin: '0 0 8px' }}>Skvěle!</p>
+          <p style={{ color: '#34d399', fontWeight: 700, fontSize: '18px', margin: '0 0 8px' }}>+{100 + timeLeft * 2} bodů</p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>Čekáme na ostatní...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 space-y-4">
-          <div className="text-center">
-            <span className="text-purple-300 text-sm uppercase tracking-wider">
-              {type === 'quiz' ? '❓ Kvíz' : type === 'vote' ? '🗳️ Hlasování' : type === 'scenario' ? '🎭 Scénář' : '💭 Reflexe'}
+    <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div style={{ width: '100%', maxWidth: '460px' }}>
+        {/* Timer */}
+        {timeLeft > 0 && (
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <div style={{
+              display: 'inline-block', width: '60px', height: '60px', borderRadius: '50%',
+              background: timeLeft <= 5 ? 'rgba(239,68,68,0.2)' : 'rgba(124,58,237,0.2)',
+              border: `3px solid ${timeLeft <= 5 ? '#ef4444' : '#7c3aed'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: timeLeft <= 5 ? '#ef4444' : '#a78bfa', fontWeight: 900, fontSize: '22px',
+            } as React.CSSProperties}>{timeLeft}</div>
+          </div>
+        )}
+
+        {/* My team badge */}
+        {myTeam && (
+          <div style={{ background: `${myTeam.color}22`, border: `1px solid ${myTeam.color}44`, borderRadius: '12px', padding: '8px 16px', textAlign: 'center', marginBottom: '12px' }}>
+            <span style={{ color: myTeam.color, fontWeight: 700 }}>🎯 {myTeam.name}</span>
+          </div>
+        )}
+
+        <div className="glass card">
+          <div style={{ marginBottom: '12px' }}>
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              {typeLabel[type] || '📋 Aktivita'}
             </span>
           </div>
-          <h2 className="text-white font-bold text-xl">{moduleData.question as string}</h2>
+          <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '20px', margin: '0 0 20px', lineHeight: 1.4 }}>
+            {moduleData.question as string}
+          </h2>
 
           {type === 'reflection' ? (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <textarea
                 value={openAnswer}
-                onChange={(e) => setOpenAnswer(e.target.value)}
+                onChange={e => setOpenAnswer(e.target.value)}
                 placeholder="Napiš svou odpověď..."
-                rows={4}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400 resize-none"
+                rows={5} className="input-field"
               />
-              <button
-                onClick={submitOpen}
-                disabled={!openAnswer.trim()}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold hover:opacity-90 disabled:opacity-50"
-              >
-                Odeslat
+              <button onClick={submitOpen} disabled={!openAnswer.trim()} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '16px' }}>
+                Odeslat odpověď
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {((moduleData.options as string[]) || []).map((opt, i) => (
                 <button
                   key={i}
                   onClick={() => submitAnswer(opt)}
-                  style={{ borderColor: COLORS[i % COLORS.length] }}
-                  className="w-full bg-white/10 border-2 text-white py-4 rounded-xl font-medium text-left px-4 hover:bg-white/20 transition-all"
+                  style={{
+                    background: `${COLORS[i % COLORS.length]}18`,
+                    border: `2px solid ${COLORS[i % COLORS.length]}55`,
+                    borderRadius: '14px', padding: '16px 20px',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = `${COLORS[i % COLORS.length]}33`; e.currentTarget.style.transform = 'translateX(4px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = `${COLORS[i % COLORS.length]}18`; e.currentTarget.style.transform = 'none'; }}
                 >
-                  <span className="font-bold mr-2" style={{ color: COLORS[i % COLORS.length] }}>
-                    {String.fromCharCode(65 + i)}.
+                  <span style={{
+                    width: '32px', height: '32px', borderRadius: '8px',
+                    background: `${COLORS[i % COLORS.length]}33`,
+                    color: COLORS[i % COLORS.length], fontWeight: 900, fontSize: '14px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    {String.fromCharCode(65 + i)}
                   </span>
-                  {opt}
+                  <span style={{ color: '#fff', fontSize: '16px', fontWeight: 500 }}>{opt}</span>
                 </button>
               ))}
             </div>
@@ -139,5 +203,13 @@ export default function PlayModulePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function PlayModulePage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0f0a1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Načítání...</div>}>
+      <PlayModuleContent />
+    </Suspense>
   );
 }

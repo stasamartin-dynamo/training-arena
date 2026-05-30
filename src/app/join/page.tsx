@@ -1,18 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import { Suspense } from 'react';
 
-export default function JoinPage() {
+function JoinContent() {
   const [code, setCode] = useState('');
   const [nickname, setNickname] = useState('');
   const [step, setStep] = useState<'code' | 'nickname'>('code');
   const [sessionId, setSessionId] = useState('');
+  const [sessionTitle, setSessionTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const c = searchParams.get('code');
+    if (c) setCode(c.toUpperCase());
+  }, [searchParams]);
 
   const findSession = async () => {
     if (!code.trim()) return;
@@ -24,98 +32,97 @@ export default function JoinPage() {
         where('status', 'in', ['waiting', 'active'])
       );
       const snap = await getDocs(q);
-      if (snap.empty) {
-        toast.error('Session nenalezena nebo již skončila');
-        return;
-      }
+      if (snap.empty) { toast.error('Session nenalezena nebo již skončila'); return; }
       setSessionId(snap.docs[0].id);
+      setSessionTitle(snap.docs[0].data().title);
       setStep('nickname');
-    } catch {
-      toast.error('Chyba při hledání session');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Chyba při hledání'); } finally { setLoading(false); }
   };
 
   const joinSession = async () => {
     if (!nickname.trim()) return;
     setLoading(true);
     try {
-      const { addDoc, collection: col } = await import('firebase/firestore');
-      await addDoc(col(db, 'sessions', sessionId, 'participants'), {
-        nickname: nickname.trim(),
-        sessionId,
-        score: 0,
-        joinedAt: Date.now(),
+      const participantRef = await addDoc(collection(db, 'sessions', sessionId, 'participants'), {
+        nickname: nickname.trim(), sessionId, score: 0, joinedAt: Date.now(),
       });
       localStorage.setItem('nickname', nickname.trim());
       localStorage.setItem('sessionId', sessionId);
+      localStorage.setItem('participantId', participantRef.id);
       router.push(`/play/${sessionId}`);
-    } catch {
-      toast.error('Chyba při připojování');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Chyba při připojování'); } finally { setLoading(false); }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-black text-white mb-2">🏟️ Training Arena</h1>
-          <p className="text-purple-200 text-lg">Připojit se ke školení</p>
+    <main style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+    }}>
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(8,145,178,0.15) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)' }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '8px' }}>🏟️</div>
+          <h1 style={{ fontSize: '32px', fontWeight: 900, color: '#fff', margin: 0 }}>Training Arena</h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '8px' }}>Připojit se ke školení</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
+        <div className="glass card">
           {step === 'code' ? (
-            <div className="space-y-4">
-              <h2 className="text-white font-bold text-xl text-center">Zadej kód školení</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h2 style={{ color: '#fff', fontWeight: 700, textAlign: 'center', margin: 0 }}>Zadej kód školení</h2>
               <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                type="text" value={code}
+                onChange={e => setCode(e.target.value.toUpperCase())}
                 placeholder="např. AB12"
                 maxLength={6}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-4 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400 text-center text-3xl font-mono font-bold tracking-widest"
-                onKeyDown={(e) => e.key === 'Enter' && findSession()}
+                className="input-field"
+                style={{ textAlign: 'center', fontSize: '32px', fontFamily: 'monospace', fontWeight: 700, letterSpacing: '8px', padding: '16px' }}
+                onKeyDown={e => e.key === 'Enter' && findSession()}
               />
-              <button
-                onClick={findSession}
-                disabled={loading || !code.trim()}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold text-lg hover:opacity-90 transition-all disabled:opacity-50"
-              >
-                {loading ? 'Hledám...' : 'Najít školení'}
+              <button onClick={findSession} disabled={loading || !code.trim()} className="btn-primary"
+                style={{ width: '100%', padding: '14px', fontSize: '16px' }}>
+                {loading ? 'Hledám...' : '🔍 Najít školení'}
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <h2 className="text-white font-bold text-xl text-center">Jak se jmenuješ?</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ background: 'rgba(124,58,237,0.15)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 4px', fontSize: '13px' }}>Připojuješ se k</p>
+                <p style={{ color: '#fff', fontWeight: 700, margin: 0, fontSize: '18px' }}>{sessionTitle}</p>
+              </div>
+              <h2 style={{ color: '#fff', fontWeight: 700, textAlign: 'center', margin: 0 }}>Jak se jmenuješ?</h2>
               <input
-                type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                type="text" value={nickname}
+                onChange={e => setNickname(e.target.value)}
                 placeholder="Tvoje přezdívka"
                 maxLength={20}
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-4 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400 text-center text-2xl font-bold"
-                onKeyDown={(e) => e.key === 'Enter' && joinSession()}
+                className="input-field"
+                style={{ textAlign: 'center', fontSize: '22px', fontWeight: 700, padding: '16px' }}
+                onKeyDown={e => e.key === 'Enter' && joinSession()}
               />
-              <button
-                onClick={joinSession}
-                disabled={loading || !nickname.trim()}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-xl font-bold text-lg hover:opacity-90 transition-all disabled:opacity-50"
-              >
+              <button onClick={joinSession} disabled={loading || !nickname.trim()} className="btn-success"
+                style={{ width: '100%', padding: '14px', fontSize: '16px' }}>
                 {loading ? 'Připojuji...' : '🚀 Vstoupit do arény!'}
               </button>
-              <button
-                onClick={() => setStep('code')}
-                className="w-full text-purple-300 py-2 text-sm hover:text-white transition-all"
-              >
-                ← Zpět
-              </button>
+              <button onClick={() => setStep('code')} style={{
+                background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)',
+                cursor: 'pointer', fontSize: '14px', padding: '8px',
+              }}>← Zpět</button>
             </div>
           )}
         </div>
       </div>
     </main>
   );
+}
+
+export default function JoinPage() {
+  return <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0f0a1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Načítání...</div>}>
+    <JoinContent />
+  </Suspense>;
 }
