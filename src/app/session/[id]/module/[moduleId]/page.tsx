@@ -77,6 +77,15 @@ function ModuleContent() {
     }
   }, [started, timeLeft, moduleData.timeLimit]);
 
+  const [session, setSession] = useState<Record<string, unknown>>({});
+  useEffect(() => {
+    if (!id) return;
+    const unsub = onSnapshot(doc(db, 'sessions', id as string), snap => {
+      if (snap.exists()) setSession(snap.data());
+    });
+    return unsub;
+  }, [id]);
+
   // Auto-advance set flow when all participants answered
   useEffect(() => {
     if (!id || !moduleId) return;
@@ -107,15 +116,6 @@ function ModuleContent() {
     }, 2000);
     return () => clearTimeout(timer);
   }, [answers.length, participants.length, started, id, moduleId, session, router]);
-
-  const [session, setSession] = useState<Record<string, unknown>>({});
-  useEffect(() => {
-    if (!id) return;
-    const unsub = onSnapshot(doc(db, 'sessions', id as string), snap => {
-      if (snap.exists()) setSession(snap.data());
-    });
-    return unsub;
-  }, [id]);
 
   const startModule = async () => {
     const filteredOptions = type === 'reflection' ? [] : options.filter(o => o.trim());
