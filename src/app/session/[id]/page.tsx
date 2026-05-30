@@ -96,7 +96,7 @@ export default function SessionPage() {
           question: modData.question,
           options: modData.options || [],
           correctAnswer: modData.correctAnswer || '',
-          points: modData.points ?? 0,
+          points: Number(modData.points) || 0,
           answers: answersSnap.docs.map(a => a.data() as { nickname: string; answer: string; answeredAt: number }),
         });
       }
@@ -126,7 +126,7 @@ export default function SessionPage() {
         type: item.type, question: item.question, options: item.options || [],
         timeLimit: item.timeLimit || 30, title: item.title || '',
         correctAnswer: (item as {correctAnswer?: string}).correctAnswer || '',
-        points: (item as {points?: number}).points ?? 100,
+        points: Number((item as {points?: number}).points) || 5,
         status: 'pending', started: false, showResults: false, preloaded: true,
         createdAt: Date.now(),
       });
