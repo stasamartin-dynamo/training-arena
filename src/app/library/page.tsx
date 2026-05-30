@@ -123,6 +123,14 @@ export default function LibraryPage() {
     toast.success('Smazáno');
   };
 
+  const removeFolder = async (folderName: string, folderItems: LibraryItem[]) => {
+    if (!confirm(`Smazat celou složku "${folderName}" (${folderItems.length} položek)?`)) return;
+    try {
+      await Promise.all(folderItems.map(item => deleteDoc(doc(db, 'library', item.id))));
+      toast.success(`Složka "${folderName}" smazána`);
+    } catch { toast.error('Chyba při mazání složky'); }
+  };
+
   const filtered = filterType === 'all' ? items : items.filter(i => i.type === filterType);
   const typeInfo = (type: string) => MODULE_TYPES.find(m => m.type === type) || MODULE_TYPES[0];
 
