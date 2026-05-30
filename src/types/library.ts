@@ -8,8 +8,11 @@ export interface LibraryItem {
   question: string;
   options: string[];
   timeLimit: number;
+  correctAnswer?: string;
+  points?: number;
   createdAt: number;
   updatedAt: number;
+  setName?: string;
 }
 
 export interface TrainingSet {

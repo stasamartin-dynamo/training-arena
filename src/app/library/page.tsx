@@ -21,6 +21,8 @@ const EMPTY_ITEM = {
   question: '',
   options: ['', '', '', ''],
   timeLimit: 30,
+  correctAnswer: '',
+  points: 100,
 };
 
 export default function LibraryPage() {
@@ -77,7 +79,7 @@ export default function LibraryPage() {
 
   const openEdit = (item: LibraryItem) => {
     setEditing(item);
-    setForm({ type: item.type, title: item.title, question: item.question, options: [...item.options, '', '', '', ''].slice(0, 4), timeLimit: item.timeLimit });
+    setForm({ type: item.type, title: item.title, question: item.question, options: [...item.options, '', '', '', ''].slice(0, 4), timeLimit: item.timeLimit, correctAnswer: item.correctAnswer || '', points: item.points ?? 100 });
     setShowForm(true);
   };
 
@@ -92,6 +94,8 @@ export default function LibraryPage() {
         question: form.question.trim(),
         options: form.type === 'reflection' ? [] : form.options.filter(o => o.trim()),
         timeLimit: form.timeLimit,
+        correctAnswer: form.correctAnswer || '',
+        points: form.points ?? 100,
         updatedAt: Date.now(),
       };
       if (editing) {
@@ -218,6 +222,26 @@ export default function LibraryPage() {
                       onChange={e => { const n = [...form.options]; n[i] = e.target.value; setForm(f => ({ ...f, options: n })); }}
                       placeholder={`Možnost ${String.fromCharCode(65 + i)}`} className="input-field" />
                   ))}
+                </div>
+              )}
+              {form.type !== 'reflection' && form.type !== 'vote' && (
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '180px' }}>
+                    <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', display: 'block', marginBottom: '6px' }}>✅ Správná odpověď</label>
+                    <select value={form.correctAnswer} onChange={e => setForm(f => ({ ...f, correctAnswer: e.target.value }))}
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px 14px', color: '#fff', fontSize: '14px', outline: 'none' }}>
+                      <option value="">— žádná (hlasování) —</option>
+                      {form.options.filter(o => o.trim()).map((o, i) => (
+                        <option key={i} value={o}>{String.fromCharCode(65+i)}: {o.length > 40 ? o.slice(0,40)+'…' : o}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ minWidth: '120px' }}>
+                    <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', display: 'block', marginBottom: '6px' }}>🏆 Body za správnou</label>
+                    <input type="number" value={form.points} min={0} max={1000} step={10}
+                      onChange={e => setForm(f => ({ ...f, points: Number(e.target.value) }))}
+                      className="input-field" style={{ width: '100%' }} />
+                  </div>
                 </div>
               )}
               <div>

@@ -93,10 +93,25 @@ function PlayModuleContent() {
       });
       const modType = moduleData.type as string;
       if (participantId && modType !== 'reflection') {
-        const points = 100 + timeLeft * 2;
-        await updateDoc(doc(db, 'sessions', id as string, 'participants', participantId), {
-          score: increment(points),
-        });
+        const correctAnswer = moduleData.correctAnswer as string | undefined;
+        const basePoints = (moduleData.points as number) ?? 100;
+        let earned = 0;
+        if (!correctAnswer || correctAnswer === '') {
+          // Hlasování nebo bez správné odpovědi — body za rychlost
+          earned = basePoints + timeLeft * 2;
+        } else {
+          // Je definována správná odpověď
+          if (ans === correctAnswer) {
+            earned = basePoints + timeLeft * 2;
+          } else {
+            earned = 0;
+          }
+        }
+        if (earned > 0) {
+          await updateDoc(doc(db, 'sessions', id as string, 'participants', participantId), {
+            score: increment(earned),
+          });
+        }
       }
       toast.success('Odpověď odeslána! ✅');
       // Check if set-flow — wait for session to advance

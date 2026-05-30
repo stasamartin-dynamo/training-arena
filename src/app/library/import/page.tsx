@@ -24,6 +24,8 @@ interface PreviewItem {
   question: string;
   options: string[];
   timeLimit: number;
+  correctAnswer: string;
+  points: number;
   valid: boolean;
   error?: string;
 }
@@ -74,12 +76,14 @@ export default function ImportPage() {
             .map(o => o != null ? String(o).trim() : '')
             .filter(Boolean);
           const time = Number(row[7]) || 0;
+          const correctAnswer = String(row[8] || '').trim();
+          const points = Number(row[9]) || 100;
           if (!typ) {
-            items.push({ type: 'quiz', title: title || `Řádek ${i}`, question, options: opts, timeLimit: time, valid: false, error: `Neznámý typ: "${row[0]}"` });
+            items.push({ type: 'quiz', title: title || `Řádek ${i}`, question, options: opts, timeLimit: time, correctAnswer: '', points: 100, valid: false, error: `Neznámý typ: "${row[0]}"` });
           } else if (!question) {
-            items.push({ type: typ, title: title || `Řádek ${i}`, question, options: opts, timeLimit: time, valid: false, error: 'Chybí otázka' });
+            items.push({ type: typ, title: title || `Řádek ${i}`, question, options: opts, timeLimit: time, correctAnswer: '', points: 100, valid: false, error: 'Chybí otázka' });
           } else {
-            items.push({ type: typ, title: title || question.substring(0, 40), question, options: opts, timeLimit: time, valid: true });
+            items.push({ type: typ, title: title || question.substring(0, 40), question, options: opts, timeLimit: time, correctAnswer, points, valid: true });
           }
         }
         setPreview(items);
@@ -102,6 +106,8 @@ export default function ImportPage() {
           options: item.type === 'reflection' ? [] : item.options,
           timeLimit: item.timeLimit, createdAt: Date.now(), updatedAt: Date.now(),
           setName: setName.trim() || 'Bez složky',
+          correctAnswer: item.correctAnswer || '',
+          points: item.points ?? 100,
         });
         savedItems.push({ id: ref.id, lektorId: user.uid, type: item.type, title: item.title, question: item.question, options: item.options, timeLimit: item.timeLimit, createdAt: Date.now(), updatedAt: Date.now() });
       }
