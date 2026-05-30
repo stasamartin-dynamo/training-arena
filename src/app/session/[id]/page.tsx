@@ -125,6 +125,8 @@ export default function SessionPage() {
       const moduleRef = await addDoc(collection(db, 'sessions', id as string, 'modules'), {
         type: item.type, question: item.question, options: item.options || [],
         timeLimit: item.timeLimit || 30, title: item.title || '',
+        correctAnswer: (item as {correctAnswer?: string}).correctAnswer || '',
+        points: (item as {points?: number}).points ?? 0,
         status: 'pending', started: false, showResults: false, preloaded: true,
         createdAt: Date.now(),
       });
