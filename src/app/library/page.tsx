@@ -9,10 +9,10 @@ import { LibraryItem, ModuleType } from '@/types/library';
 import toast from 'react-hot-toast';
 
 const MODULE_TYPES = [
-  { type: 'quiz', icon: '❓', label: 'Kvíz' },
-  { type: 'vote', icon: '🗳️', label: 'Hlasování' },
-  { type: 'scenario', icon: '🎭', label: 'Scénář' },
-  { type: 'reflection', icon: '💭', label: 'Reflexe' },
+  { type: 'quiz', icon: '❓', label: 'Kvíz', color: '#7c3aed' },
+  { type: 'vote', icon: '🗳️', label: 'Hlasování', color: '#0891b2' },
+  { type: 'scenario', icon: '🎭', label: 'Scénář', color: '#db2777' },
+  { type: 'reflection', icon: '💭', label: 'Reflexe', color: '#059669' },
 ];
 
 const EMPTY_ITEM = {
@@ -32,6 +32,8 @@ export default function LibraryPage() {
   const [form, setForm] = useState(EMPTY_ITEM);
   const [saving, setSaving] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+  const [view, setView] = useState<'folders' | 'all'>('folders');
 
   useEffect(() => { if (!loading && !user) router.push('/'); }, [user, loading, router]);
 
@@ -46,6 +48,26 @@ export default function LibraryPage() {
       setItems(snap.docs.map(d => ({ id: d.id, ...d.data() } as LibraryItem)));
     });
   }, [user]);
+
+  // Group items by folder (setName field, or 'Bez složky')
+  const folders = (() => {
+    const map = new Map<string, LibraryItem[]>();
+    items.forEach(item => {
+      const folder = (item as LibraryItem & { setName?: string }).setName || 'Bez složky';
+      if (!map.has(folder)) map.set(folder, []);
+      map.get(folder)!.push(item);
+    });
+    return map;
+  })();
+
+  const toggleFolder = (name: string) => {
+    setOpenFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
 
   const openNew = () => {
     setEditing(null);
@@ -90,10 +112,38 @@ export default function LibraryPage() {
   };
 
   const filtered = filterType === 'all' ? items : items.filter(i => i.type === filterType);
-
   const typeInfo = (type: string) => MODULE_TYPES.find(m => m.type === type) || MODULE_TYPES[0];
 
   if (loading) return <div style={{ minHeight: '100vh', background: '#0f0a1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Načítání...</div>;
+
+  const ItemCard = ({ item }: { item: LibraryItem }) => {
+    const t = typeInfo(item.type);
+    return (
+      <div className="glass" style={{ borderRadius: '14px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', borderLeft: `3px solid ${t.color}` }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+            <span style={{ fontSize: '14px' }}>{t.icon}</span>
+            <span style={{ color: t.color, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>{t.label}</span>
+          </div>
+          <h3 style={{ color: '#fff', fontWeight: 700, margin: '0 0 3px', fontSize: '14px' }}>{item.title}</h3>
+          <p style={{ color: 'rgba(255,255,255,0.45)', margin: '0 0 6px', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.question}</p>
+          {item.options.length > 0 && (
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+              {item.options.map((o, i) => (
+                <span key={i} style={{ background: `${t.color}22`, color: t.color, padding: '2px 7px', borderRadius: '5px', fontSize: '11px' }}>
+                  {String.fromCharCode(65 + i)}: {o.length > 20 ? o.slice(0, 20) + '…' : o}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+          <button onClick={() => openEdit(item)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>✏️</button>
+          <button onClick={() => remove(item.id)} style={{ background: 'rgba(239,68,68,0.12)', border: 'none', color: '#f87171', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🗑️</button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)', padding: '24px' }}>
@@ -103,34 +153,43 @@ export default function LibraryPage() {
           <div>
             <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '14px', padding: 0 }}>← Dashboard</button>
             <h1 style={{ color: '#fff', fontWeight: 900, fontSize: '26px', margin: '4px 0 0' }}>📚 Knihovna obsahu</h1>
-            <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '14px' }}>{items.length} položek</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '14px' }}>{items.length} položek · {folders.size} složek</p>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button onClick={() => router.push('/sets')} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
               🗂️ Sady
             </button>
             <button onClick={() => router.push('/library/import')} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-              📥 Import z Excelu
+              📥 Import
             </button>
             <button onClick={openNew} className="btn-primary" style={{ padding: '10px 20px' }}>
-              ➕ Nová položka
+              ➕ Nová
             </button>
           </div>
         </div>
 
-        {/* Filter */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          {[{ type: 'all', icon: '📋', label: 'Vše' }, ...MODULE_TYPES].map(m => (
-            <button key={m.type} onClick={() => setFilterType(m.type)}
-              style={{
-                padding: '6px 14px', borderRadius: '999px', border: '1px solid',
-                borderColor: filterType === m.type ? '#7c3aed' : 'rgba(255,255,255,0.15)',
-                background: filterType === m.type ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)',
-                color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-              }}>
-              {m.icon} {m.label}
+        {/* View toggle + filter */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => setView('folders')}
+              style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid', borderColor: view === 'folders' ? '#7c3aed' : 'rgba(255,255,255,0.15)', background: view === 'folders' ? 'rgba(124,58,237,0.2)' : 'transparent', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              📁 Složky
             </button>
-          ))}
+            <button onClick={() => setView('all')}
+              style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid', borderColor: view === 'all' ? '#7c3aed' : 'rgba(255,255,255,0.15)', background: view === 'all' ? 'rgba(124,58,237,0.2)' : 'transparent', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              📋 Vše
+            </button>
+          </div>
+          {view === 'all' && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {[{ type: 'all', icon: '📋', label: 'Vše' }, ...MODULE_TYPES].map(m => (
+                <button key={m.type} onClick={() => setFilterType(m.type)}
+                  style={{ padding: '5px 12px', borderRadius: '999px', border: '1px solid', borderColor: filterType === m.type ? '#7c3aed' : 'rgba(255,255,255,0.15)', background: filterType === m.type ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                  {m.icon} {m.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Form */}
@@ -141,19 +200,15 @@ export default function LibraryPage() {
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {MODULE_TYPES.map(m => (
                   <button key={m.type} onClick={() => setForm(f => ({ ...f, type: m.type as ModuleType }))}
-                    style={{
-                      padding: '8px 16px', borderRadius: '10px', border: '2px solid',
-                      borderColor: form.type === m.type ? '#7c3aed' : 'rgba(255,255,255,0.15)',
-                      background: form.type === m.type ? 'rgba(124,58,237,0.2)' : 'transparent',
-                      color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px',
-                    }}>{m.icon} {m.label}</button>
+                    style={{ padding: '8px 16px', borderRadius: '10px', border: '2px solid', borderColor: form.type === m.type ? '#7c3aed' : 'rgba(255,255,255,0.15)', background: form.type === m.type ? 'rgba(124,58,237,0.2)' : 'transparent', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}>
+                    {m.icon} {m.label}
+                  </button>
                 ))}
               </div>
               <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                placeholder="Název (interní popis, např. 'Scénář - náročný klient')"
-                className="input-field" />
+                placeholder="Název (interní popis)" className="input-field" />
               <textarea value={form.question} onChange={e => setForm(f => ({ ...f, question: e.target.value }))}
-                placeholder={form.type === 'reflection' ? 'Otázka pro reflexi (např. Co si odnášíš?)' : form.type === 'scenario' ? 'Popiš situaci/scénář...' : 'Zadej otázku...'}
+                placeholder={form.type === 'reflection' ? 'Otázka pro reflexi...' : form.type === 'scenario' ? 'Popiš situaci/scénář...' : 'Zadej otázku...'}
                 rows={3} className="input-field" />
               {form.type !== 'reflection' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -188,41 +243,67 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {/* List */}
-        {filtered.length === 0 && !showForm && (
-          <div className="glass card" style={{ textAlign: 'center', padding: '48px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>📚</div>
-            <p style={{ color: 'rgba(255,255,255,0.4)' }}>Knihovna je prázdná. Přidej první položku!</p>
-          </div>
-        )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {filtered.map(item => {
-            const t = typeInfo(item.type);
-            return (
-              <div key={item.id} className="glass" style={{ borderRadius: '16px', padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '16px' }}>{t.icon}</span>
-                    <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>{t.label}</span>
-                  </div>
-                  <h3 style={{ color: '#fff', fontWeight: 700, margin: '0 0 4px', fontSize: '15px' }}>{item.title}</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 6px', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.question}</p>
-                  {item.options.length > 0 && (
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {item.options.map((o, i) => (
-                        <span key={i} style={{ background: 'rgba(124,58,237,0.2)', color: '#a78bfa', padding: '2px 8px', borderRadius: '6px', fontSize: '12px' }}>{o}</span>
-                      ))}
+        {/* Folder view */}
+        {view === 'folders' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {items.length === 0 && !showForm && (
+              <div className="glass card" style={{ textAlign: 'center', padding: '48px' }}>
+                <div style={{ fontSize: '48px', marginBottom: '12px' }}>📚</div>
+                <p style={{ color: 'rgba(255,255,255,0.4)' }}>Knihovna je prázdná. Importuj Excel nebo přidej položku!</p>
+              </div>
+            )}
+            {Array.from(folders.entries()).map(([folderName, folderItems]) => {
+              const isOpen = openFolders.has(folderName);
+              const typesCounts = folderItems.reduce((acc, item) => {
+                acc[item.type] = (acc[item.type] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>);
+              return (
+                <div key={folderName}>
+                  {/* Folder header */}
+                  <button onClick={() => toggleFolder(folderName)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', background: isOpen ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isOpen ? 'rgba(124,58,237,0.4)' : 'rgba(255,255,255,0.1)'}`, borderRadius: isOpen ? '16px 16px 0 0' : '16px', padding: '14px 18px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s' }}>
+                    <span style={{ fontSize: '20px' }}>{isOpen ? '📂' : '📁'}</span>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ color: '#fff', fontWeight: 700, fontSize: '15px' }}>{folderName}</span>
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        {Object.entries(typesCounts).map(([type, count]) => {
+                          const t = typeInfo(type);
+                          return (
+                            <span key={type} style={{ background: `${t.color}22`, color: t.color, padding: '1px 8px', borderRadius: '999px', fontSize: '11px', fontWeight: 600 }}>
+                              {t.icon} {count}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>{folderItems.length} položek</span>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '16px', transition: 'transform 0.2s', transform: isOpen ? 'rotate(90deg)' : 'none' }}>›</span>
+                  </button>
+                  {/* Folder contents */}
+                  {isOpen && (
+                    <div style={{ border: '1px solid rgba(124,58,237,0.3)', borderTop: 'none', borderRadius: '0 0 16px 16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(124,58,237,0.05)' }}>
+                      {folderItems.map(item => <ItemCard key={item.id} item={item} />)}
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                  <button onClick={() => openEdit(item)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>✏️</button>
-                  <button onClick={() => remove(item.id)} style={{ background: 'rgba(239,68,68,0.15)', border: 'none', color: '#f87171', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🗑️</button>
-                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* All view */}
+        {view === 'all' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {filtered.length === 0 && !showForm && (
+              <div className="glass card" style={{ textAlign: 'center', padding: '48px' }}>
+                <div style={{ fontSize: '48px', marginBottom: '12px' }}>📚</div>
+                <p style={{ color: 'rgba(255,255,255,0.4)' }}>Žádné položky</p>
               </div>
-            );
-          })}
-        </div>
+            )}
+            {filtered.map(item => <ItemCard key={item.id} item={item} />)}
+          </div>
+        )}
       </div>
     </main>
   );

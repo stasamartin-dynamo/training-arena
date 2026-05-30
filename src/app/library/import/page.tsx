@@ -101,6 +101,7 @@ export default function ImportPage() {
           question: item.question,
           options: item.type === 'reflection' ? [] : item.options,
           timeLimit: item.timeLimit, createdAt: Date.now(), updatedAt: Date.now(),
+          setName: setName.trim() || 'Bez složky',
         });
         savedItems.push({ id: ref.id, lektorId: user.uid, type: item.type, title: item.title, question: item.question, options: item.options, timeLimit: item.timeLimit, createdAt: Date.now(), updatedAt: Date.now() });
       }
