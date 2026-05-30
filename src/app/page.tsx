@@ -70,7 +70,7 @@ export default function Home() {
             Training Arena
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '8px', fontSize: '15px' }}>
-            Interaktivní platforma pro lektory
+            Bridge of skills - Martin Staša
           </p>
         </div>
 

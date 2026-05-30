@@ -81,7 +81,7 @@ export default function Dashboard() {
               <span style={{ fontSize: '32px' }}>🏟️</span>
               <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff', margin: 0 }}>Training Arena</h1>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '14px' }}>{user?.email}</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '14px' }}>www.inspiracezivotem.eu</p>
           </div>
           <button onClick={logOut} style={{
             background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
