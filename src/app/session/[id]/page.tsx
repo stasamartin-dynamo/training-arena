@@ -26,6 +26,8 @@ interface ModuleResult {
   type: string;
   question: string;
   options: string[];
+  correctAnswer: string;
+  points: number;
   answers: { nickname: string; answer: string; answeredAt: number }[];
 }
 
@@ -93,6 +95,8 @@ export default function SessionPage() {
           type: modData.type,
           question: modData.question,
           options: modData.options || [],
+          correctAnswer: modData.correctAnswer || '',
+          points: modData.points ?? 0,
           answers: answersSnap.docs.map(a => a.data() as { nickname: string; answer: string; answeredAt: number }),
         });
       }
@@ -248,7 +252,19 @@ export default function SessionPage() {
                         </span>
                         <h3 style={{ color: '#fff', fontWeight: 700, fontSize: '16px', margin: '4px 0 0' }}>{mod.question}</h3>
                       </div>
-                      <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', whiteSpace: 'nowrap' }}>{mod.answers.length} odpovědí</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+                        {mod.correctAnswer && (
+                          <span style={{ background: 'rgba(5,150,105,0.15)', border: '1px solid rgba(5,150,105,0.3)', color: '#34d399', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 700 }}>
+                            ✅ {mod.correctAnswer.length > 25 ? mod.correctAnswer.slice(0,25)+'…' : mod.correctAnswer}
+                          </span>
+                        )}
+                        {mod.points > 0 && (
+                          <span style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 700 }}>
+                            🏆 {mod.points} b
+                          </span>
+                        )}
+                        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>{mod.answers.length} odpovědí</span>
+                      </div>
                     </div>
 
                     {mod.type === 'reflection' ? (
@@ -286,10 +302,10 @@ export default function SessionPage() {
                               <span style={{ width: '20px', height: '20px', borderRadius: '4px', background: COLORS[i % COLORS.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                                 {String.fromCharCode(65 + i)}
                               </span>
-                              <div style={{ flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: '6px', height: '24px', overflow: 'hidden', position: 'relative' }}>
-                                <div style={{ width: `${(d.count / maxCount) * 100}%`, background: `${COLORS[i % COLORS.length]}66`, height: '100%', transition: 'width 0.5s' }} />
+                              <div style={{ flex: 1, background: d.fullName === mod.correctAnswer ? 'rgba(5,150,105,0.15)' : 'rgba(255,255,255,0.06)', borderRadius: '6px', height: '24px', overflow: 'hidden', position: 'relative', border: d.fullName === mod.correctAnswer ? '1px solid rgba(5,150,105,0.4)' : 'none' }}>
+                                <div style={{ width: `${(d.count / maxCount) * 100}%`, background: d.fullName === mod.correctAnswer ? 'rgba(5,150,105,0.5)' : `${COLORS[i % COLORS.length]}66`, height: '100%', transition: 'width 0.5s' }} />
                                 <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>
-                                  {d.fullName}
+                                  {d.fullName} {d.fullName === mod.correctAnswer ? '✅' : ''}
                                 </span>
                               </div>
                               <span style={{ color: COLORS[i % COLORS.length], fontWeight: 700, fontSize: '14px', width: '24px', textAlign: 'right' }}>{d.count}</span>
