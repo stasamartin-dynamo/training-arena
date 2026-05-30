@@ -126,7 +126,7 @@ export default function SessionPage() {
         type: item.type, question: item.question, options: item.options || [],
         timeLimit: item.timeLimit || 30, title: item.title || '',
         correctAnswer: (item as {correctAnswer?: string}).correctAnswer || '',
-        points: (item as {points?: number}).points ?? 0,
+        points: (item as {points?: number}).points ?? 100,
         status: 'pending', started: false, showResults: false, preloaded: true,
         createdAt: Date.now(),
       });
