@@ -12,17 +12,6 @@ function generateCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase();
 }
 
-const MODULE_COLORS: Record<string, string> = {
-  waiting: 'rgba(234,179,8,0.2)',
-  active: 'rgba(16,185,129,0.2)',
-  finished: 'rgba(100,116,139,0.2)',
-};
-const MODULE_TEXT: Record<string, string> = {
-  waiting: '#fbbf24',
-  active: '#34d399',
-  finished: '#94a3b8',
-};
-
 export default function Dashboard() {
   const { user, logOut, loading } = useAuth();
   const router = useRouter();
@@ -41,10 +30,9 @@ export default function Dashboard() {
       where('lektorId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-    const unsub = onSnapshot(q, snap => {
+    return onSnapshot(q, snap => {
       setSessions(snap.docs.map(d => ({ id: d.id, ...d.data() } as Session)));
     });
-    return unsub;
   }, [user]);
 
   const createSession = async () => {
@@ -75,20 +63,19 @@ export default function Dashboard() {
     </div>
   );
 
+  const statusColor: Record<string, string> = { waiting: '#fbbf24', active: '#34d399', finished: '#94a3b8' };
+  const statusBg: Record<string, string> = { waiting: 'rgba(234,179,8,0.15)', active: 'rgba(16,185,129,0.15)', finished: 'rgba(100,116,139,0.15)' };
+  const statusLabel: Record<string, string> = { waiting: '🟡 Čeká', active: '🟢 Aktivní', finished: '⚫ Ukončená' };
+
   return (
-    <main style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
-      padding: '24px',
-    }}>
-      {/* BG */}
+    <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)', padding: '24px' }}>
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)' }} />
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
               <span style={{ fontSize: '32px' }}>🏟️</span>
@@ -103,22 +90,33 @@ export default function Dashboard() {
           }}>Odhlásit</button>
         </div>
 
+        {/* Quick links */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { icon: '📚', label: 'Knihovna obsahu', sub: 'Otázky a scénáře', path: '/library', color: '#7c3aed' },
+            { icon: '🗂️', label: 'Sady školení', sub: 'Připravené playlisty', path: '/sets', color: '#0891b2' },
+          ].map(link => (
+            <div key={link.path} onClick={() => router.push(link.path)}
+              className="glass" style={{ borderRadius: '16px', padding: '18px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '14px' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}>
+              <div style={{ fontSize: '28px', width: '48px', height: '48px', borderRadius: '12px', background: `${link.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{link.icon}</div>
+              <div>
+                <p style={{ color: '#fff', fontWeight: 700, margin: 0, fontSize: '14px' }}>{link.label}</p>
+                <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '12px' }}>{link.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Create session */}
         <div className="glass card" style={{ marginBottom: '24px' }}>
-          <h2 style={{ color: '#fff', fontWeight: 700, marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>
-            ➕ Nová session
-          </h2>
+          <h2 style={{ color: '#fff', fontWeight: 700, marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>➕ Nová session</h2>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <input
-              type="text" value={title}
-              onChange={e => setTitle(e.target.value)}
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="Název školení (např. Obchodní dovednosti)"
-              className="input-field"
-              onKeyDown={e => e.key === 'Enter' && createSession()}
-              style={{ flex: 1 }}
-            />
-            <button onClick={createSession} disabled={creating || !title.trim()} className="btn-primary"
-              style={{ whiteSpace: 'nowrap', padding: '12px 24px' }}>
+              className="input-field" onKeyDown={e => e.key === 'Enter' && createSession()} style={{ flex: 1 }} />
+            <button onClick={createSession} disabled={creating || !title.trim()} className="btn-primary" style={{ whiteSpace: 'nowrap', padding: '12px 24px' }}>
               {creating ? '...' : 'Vytvořit'}
             </button>
           </div>
@@ -126,9 +124,7 @@ export default function Dashboard() {
 
         {/* Sessions list */}
         <div>
-          <h2 style={{ color: '#fff', fontWeight: 700, marginBottom: '16px', fontSize: '18px' }}>
-            📋 Moje sessions ({sessions.length})
-          </h2>
+          <h2 style={{ color: '#fff', fontWeight: 700, marginBottom: '16px', fontSize: '18px' }}>📋 Moje sessions ({sessions.length})</h2>
           {sessions.length === 0 && (
             <div className="glass card" style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '48px' }}>
               <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎯</div>
@@ -137,17 +133,10 @@ export default function Dashboard() {
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {sessions.map(session => (
-              <div
-                key={session.id}
-                onClick={() => router.push(`/session/${session.id}`)}
-                className="glass"
-                style={{
-                  borderRadius: '16px', padding: '20px', cursor: 'pointer',
-                  transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
-              >
+              <div key={session.id} onClick={() => router.push(`/session/${session.id}`)}
+                className="glass" style={{ borderRadius: '16px', padding: '20px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}>
                 <div>
                   <h3 style={{ color: '#fff', fontWeight: 700, margin: '0 0 4px', fontSize: '16px' }}>{session.title}</h3>
                   <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: '13px' }}>
@@ -156,16 +145,11 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{
-                    background: MODULE_COLORS[session.status], color: MODULE_TEXT[session.status],
-                    padding: '4px 12px', borderRadius: '999px', fontSize: '13px', fontWeight: 600,
-                  }}>
-                    {session.status === 'active' ? '🟢 Aktivní' : session.status === 'finished' ? '⚫ Ukončená' : '🟡 Čeká'}
+                  <span style={{ background: statusBg[session.status], color: statusColor[session.status], padding: '4px 12px', borderRadius: '999px', fontSize: '13px', fontWeight: 600 }}>
+                    {statusLabel[session.status]}
                   </span>
-                  <button
-                    onClick={e => deleteSession(e, session.id)}
-                    style={{ background: 'rgba(239,68,68,0.15)', border: 'none', color: '#f87171', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
-                  >🗑️</button>
+                  <button onClick={e => deleteSession(e, session.id)}
+                    style={{ background: 'rgba(239,68,68,0.15)', border: 'none', color: '#f87171', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>🗑️</button>
                 </div>
               </div>
             ))}
