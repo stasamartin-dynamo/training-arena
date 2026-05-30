@@ -12,9 +12,9 @@ import { LibraryItem, ModuleType } from '@/types/library';
 const TYPE_MAP: Record<string, ModuleType> = {
   'kvíz': 'quiz', 'kviz': 'quiz', 'quiz': 'quiz',
   'hlasování': 'vote', 'hlasovani': 'vote', 'vote': 'vote', 'anketa': 'vote',
-  'scénář': 'scenario', 'scenár': 'scenario', 'scenar': 'scenario', 'scenario': 'scenario',
+  'scénář': 'scenario', 'scenar': 'scenario', 'scenario': 'scenario',
   'reflexe': 'reflection', 'reflection': 'reflection',
-  'gamifikace': 'gamification', 'gamifikace': 'gamification', 'gamification': 'gamification',
+  'gamifikace': 'gamification', 'gamification': 'gamification',
 };
 
 interface PreviewItem {
