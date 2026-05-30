@@ -76,6 +76,31 @@ export default function SessionPage() {
     toast.success('Session ukončena');
   };
 
+  const launchSet = async (set: TrainingSet) => {
+    if (!set.items || set.items.length === 0) { toast.error('Sada je prázdná'); return; }
+    toast.loading('Připravuji sadu...');
+    const moduleIds: string[] = [];
+    for (const item of set.items) {
+      const moduleRef = await addDoc(collection(db, 'sessions', id as string, 'modules'), {
+        type: item.type, question: item.question, options: item.options || [],
+        timeLimit: item.timeLimit || 30, title: item.title || '',
+        status: 'pending', started: false, showResults: false, preloaded: true,
+        createdAt: Date.now(),
+      });
+      moduleIds.push(moduleRef.id);
+    }
+    await updateDoc(doc(db, 'sessions', id as string), {
+      setFlow: moduleIds, setFlowIndex: 0, setFlowFinished: false,
+      currentModule: moduleIds[0],
+    });
+    await updateDoc(doc(db, 'sessions', id as string, 'modules', moduleIds[0]), {
+      started: true, startedAt: Date.now(),
+    });
+    toast.dismiss();
+    toast.success('Sada spuštěna!');
+    router.push(`/session/${id}/module/${moduleIds[0]}?type=${set.items[0].type}&setflow=1`);
+  };
+
   const launchModule = async (type: string, item?: LibraryItem) => {
     const moduleRef = await addDoc(collection(db, 'sessions', id as string, 'modules'), {
       type, status: 'active', started: false, showResults: false, createdAt: Date.now(),
@@ -228,7 +253,13 @@ export default function SessionPage() {
                     </div>
                     {selectedSet && selectedSet.items?.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', margin: '0 0 8px' }}>Klikni na modul pro spuštění:</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', margin: 0 }}>Klikni na modul pro spuštění:</p>
+                          <button onClick={() => launchSet(selectedSet)}
+                            style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)', border: 'none', borderRadius: '10px', padding: '8px 16px', color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+                            ▶ Spustit celou sadu ({selectedSet.items.length})
+                          </button>
+                        </div>
                         {selectedSet.items.map((item, i) => {
                           const m = MODULES.find(mod => mod.type === item.type) || MODULES[0];
                           return (
