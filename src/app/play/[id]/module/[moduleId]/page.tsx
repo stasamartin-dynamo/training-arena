@@ -133,7 +133,7 @@ function PlayModuleContent() {
         {timeLeft > 0 && (
           <div style={{ textAlign: 'center', marginBottom: '16px' }}>
             <div style={{
-              display: 'inline-block', width: '60px', height: '60px', borderRadius: '50%',
+              width: '60px', height: '60px', borderRadius: '50%',
               background: timeLeft <= 5 ? 'rgba(239,68,68,0.2)' : 'rgba(124,58,237,0.2)',
               border: `3px solid ${timeLeft <= 5 ? '#ef4444' : '#7c3aed'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
