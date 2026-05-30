@@ -41,13 +41,11 @@ export default function PlayPage() {
       setSession(s);
 
       if (s.currentModule) {
-        const modSnap = await getDocs(
-          query(collection(db, 'sessions', id as string, 'modules'),
-            where('status', '==', 'active'), limit(1))
-        );
-        if (!modSnap.empty) {
-          const mod = modSnap.docs[0];
-          router.push(`/play/${id}/module/${mod.id}?type=${mod.data().type}`);
+        const { getDoc } = await import('firebase/firestore');
+        const modSnap = await getDoc(doc(db, 'sessions', id as string, 'modules', s.currentModule));
+        if (modSnap.exists()) {
+          const modData = modSnap.data();
+          router.push(`/play/${id}/module/${s.currentModule}?type=${modData.type}`);
         }
       }
     });
