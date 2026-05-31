@@ -28,15 +28,7 @@ const EMPTY_ITEM = {
 export default function LibraryPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [items, setItems] = useState<LibraryItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('library_cache');
-        return cached ? JSON.parse(cached) : [];
-      } catch { return []; }
-    }
-    return [];
-  });
+  const [items, setItems] = useState<LibraryItem[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<LibraryItem | null>(null);
   const [form, setForm] = useState(EMPTY_ITEM);
