@@ -18,6 +18,8 @@ function PlayModuleContent() {
   const [answered, setAnswered] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [openAnswer, setOpenAnswer] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
+  const [customAnswer, setCustomAnswer] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [currentModuleId, setCurrentModuleId] = useState(moduleId as string);
   const [waitingNext, setWaitingNext] = useState(false);
@@ -232,6 +234,22 @@ function PlayModuleContent() {
                   <span style={{ color: '#fff', fontSize: '16px', fontWeight: 500 }}>{opt}</span>
                 </button>
               ))}
+            </div>
+          )}
+            <div style={{ marginTop: '12px' }}>
+                <button onClick={() => setShowCustom(true)}
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.3)', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '15px', textAlign: 'left' }}>
+                  ✏️ Vlastní odpověď...
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <textarea value={customAnswer} onChange={e => setCustomAnswer(e.target.value)}
+                    placeholder="Napiš vlastní odpověď..." rows={3} className="input-field" />
+                    className="btn-primary" style={{ width: '100%', padding: '12px' }}>
+                    Odeslat vlastní odpověď
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
