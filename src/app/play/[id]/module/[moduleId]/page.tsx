@@ -244,9 +244,11 @@ function PlayModuleContent() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <textarea value={customAnswer} onChange={e => setCustomAnswer(e.target.value)}
-                    placeholder="Napiš vlastní odpověď..." rows={3} className="input-field" />
+                    placeholder="Napiste vlastni odpoved..." rows={3} className="input-field" />
+                  <button onClick={() => submitAnswer('[Vlastni] ' + customAnswer.trim())}
+                    disabled={customAnswer.trim().length === 0}
                     className="btn-primary" style={{ width: '100%', padding: '12px' }}>
-                    Odeslat vlastní odpověď
+                    Odeslat vlastni odpoved
                   </button>
                 </div>
               )}
