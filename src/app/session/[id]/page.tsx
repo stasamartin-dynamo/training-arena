@@ -214,7 +214,7 @@ export default function SessionPage() {
                   <span style={{ fontSize: '20px', width: '28px' }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
                   <span style={{ color: '#fff', fontWeight: 700, flex: 1 }}>{p.nickname}</span>
                   <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '18px' }}>{p.score} b</span>
-                  <div style={{ width: '120px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', height: '6px' }}>
+                  <div style={{ display: "none" }}>
                     <div style={{ width: `${Math.min(100, (p.score / (sortedParticipants[0]?.score || 1)) * 100)}%`, background: '#fbbf24', borderRadius: '4px', height: '6px' }} />
                   </div>
                 </div>
@@ -380,7 +380,7 @@ export default function SessionPage() {
                     </span>
                     <span style={{ color: '#fff', fontSize: '14px' }}>{p.nickname}</span>
                   </div>
-                  <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '14px' }}>{p.score} b</span>
+                  
                 </div>
               ))}
             </div>
