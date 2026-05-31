@@ -18,8 +18,6 @@ function PlayModuleContent() {
   const [answered, setAnswered] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [openAnswer, setOpenAnswer] = useState('');
-  const [showCustom, setShowCustom] = useState(false);
-  const [customAnswer, setCustomAnswer] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [currentModuleId, setCurrentModuleId] = useState(moduleId as string);
   const [waitingNext, setWaitingNext] = useState(false);
