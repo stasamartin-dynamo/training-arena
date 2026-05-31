@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -18,8 +19,6 @@ function PlayModuleContent() {
   const [answered, setAnswered] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [openAnswer, setOpenAnswer] = useState('');
-  const [showCustom, setShowCustom] = useState(false);
-  const [customAnswer, setCustomAnswer] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [currentModuleId, setCurrentModuleId] = useState(moduleId as string);
   const [waitingNext, setWaitingNext] = useState(false);
@@ -236,74 +235,42 @@ function PlayModuleContent() {
               ))}
             </div>
           )}
-            <div style={{ marginTop: '12px' }}>
-                <button onClick={() => setShowCustom(true)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.3)', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '15px', textAlign: 'left' }}>
-                  ✏️ Vlastní odpověď...
-                </button>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <textarea value={customAnswer} onChange={e => setCustomAnswer(e.target.value)}
-                    placeholder="Napiste vlastni odpoved..." rows={3} className="input-field" />
-                  <button onClick={() => submitAnswer('[Vlastni] ' + customAnswer.trim())}
-                    disabled={customAnswer.trim().length === 0}
-                    className="btn-primary" style={{ width: '100%', padding: '12px' }}>
-                    Odeslat vlastni odpoved
-                  </button>
-                </div>
               )}
             </div>
           )}
           {!answered && (
-            <div style={{ marginTop: '12px' }}>
-              {!showCustom ? (
-                <button onClick={() => setShowCustom(true)}
-                  style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.3)', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '15px', textAlign: 'left' }}>
-                  Vlastni odpoved...
-                </button>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <textarea value={customAnswer} onChange={e => setCustomAnswer(e.target.value)}
-                    placeholder="Napiste vlastni odpoved..." rows={3} className="input-field" />
-                  <button onClick={() => submitAnswer('[Vlastni] ' + customAnswer.trim())}
-                    disabled={customAnswer.trim() === ''}
-                    className="btn-primary" style={{ width: '100%', padding: '12px' }}>
-                    Odeslat vlastni odpoved
-                  </button>
-                </div>
               )}
             </div>
           )}
-          <div style={{ marginTop: '12px' }}>
-            {showCustom ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <textarea
-                  value={customAnswer}
-                  onChange={e => setCustomAnswer(e.target.value)}
-                  placeholder="Napiste vlastni odpoved..."
-                  rows={3}
-                  className="input-field"
-                />
-                <button
-                  onClick={() => { if (customAnswer.trim().length > 0) submitAnswer('[Vlastni] ' + customAnswer.trim()); }}
-                  className="btn-primary"
-                  style={{ width: '100%', padding: '12px' }}
-                >
-                  Odeslat vlastni odpoved
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowCustom(true)}
-                style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.3)', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '15px', textAlign: 'left' }}
-              >
-                Vlastni odpoved...
-              </button>
-            )}
-          </div>
         </div>
+        <CustomAnswerBox answered={answered} onSubmit={submitAnswer} />
       </div>
     </main>
+  );
+}
+
+function CustomAnswerBox({ answered, onSubmit }: { answered: boolean; onSubmit: (ans: string) => void }) {
+  const [show, setShow] = React.useState(false);
+  const [val, setVal] = React.useState('');
+  if (answered) return null;
+  return (
+    <div style={{ marginTop: '12px', width: '100%', maxWidth: '460px', margin: '12px auto 0' }}>
+      {show ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <textarea value={val} onChange={e => setVal(e.target.value)}
+            placeholder="Napiste vlastni odpoved..." rows={3} className="input-field" />
+          <button onClick={() => { if (val.trim()) onSubmit('[Vlastni] ' + val.trim()); }}
+            className="btn-primary" style={{ width: '100%', padding: '12px' }}>
+            Odeslat vlastni odpoved
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => setShow(true)}
+          style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px dashed rgba(255,255,255,0.3)', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: '15px', textAlign: 'left' }}>
+          Vlastni odpoved...
+        </button>
+      )}
+    </div>
   );
 }
 
