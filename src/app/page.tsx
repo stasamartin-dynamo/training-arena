@@ -39,9 +39,8 @@ export default function Home() {
   };
 
   return (
-    <main style={{
+    <main className='app-bg' style={{
       minHeight: '100vh',
-      className='app-bg',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

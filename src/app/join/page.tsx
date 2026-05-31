@@ -54,9 +54,8 @@ function JoinContent() {
   };
 
   return (
-    <main style={{
+    <main className='app-bg' style={{
       minHeight: '100vh',
-      className='app-bg',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }}>
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>
