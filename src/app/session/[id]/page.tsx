@@ -292,6 +292,17 @@ export default function SessionPage() {
                       </div>
                     ) : (
                       <div>
+                        {mod.answers.filter(a => String(a.answer).startsWith('[Vlastni]')).length > 0 && (
+                          <div style={{ marginBottom: '16px' }}>
+                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Vlastni odpovedi</p>
+                            {mod.answers.filter(a => String(a.answer).startsWith('[Vlastni]')).map((a, idx) => (
+                              <div key={idx} style={{ background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '6px' }}>
+                                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>{a.nickname}: </span>
+                                <span style={{ color: '#fff', fontSize: '14px' }}>{String(a.answer).replace('[Vlastni] ', '')}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {/* Bar chart */}
                         <div style={{ height: '160px', marginBottom: '12px' }}>
                           <ResponsiveContainer width="100%" height="100%">
