@@ -24,6 +24,7 @@ export default function Dashboard() {
   }, [user, loading, router]);
 
   useEffect(() => {
+    if (loading) return;
     if (!user) return;
     const q = query(
       collection(db, 'sessions'),
