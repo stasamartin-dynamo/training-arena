@@ -91,24 +91,7 @@ function PlayModuleContent() {
         participantId: participantId || '',
         timeBonus: timeLeft,
       });
-      const modType = moduleData.type as string;
-      if (participantId && modType !== 'reflection') {
-        const correctAnswer = moduleData.correctAnswer as string | undefined;
-        const basePoints = (moduleData.points as number) ?? 100;
-        let earned = 0;
-        if (!correctAnswer || correctAnswer === '') {
-          // Hlasování — fixní body bez bonusu
-          earned = basePoints;
-        } else {
-          // Správná/špatná odpověď — pouze fixní body
-          earned = ans === correctAnswer ? basePoints : 0;
-        }
-        if (earned > 0) {
-          await updateDoc(doc(db, 'sessions', id as string, 'participants', participantId), {
-            score: increment(earned),
-          });
-        }
-      }
+      // Bodování vypnuto
       toast.success('Odpověď odeslána! ✅');
       // Check if set-flow — wait for session to advance
       const sesSnap = await getDoc(doc(db, 'sessions', id as string));
