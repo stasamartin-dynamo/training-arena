@@ -238,8 +238,6 @@ function PlayModuleContent() {
               )}
             </div>
           )}
-          {!answered && (
-              )}
             </div>
           )}
         </div>
