@@ -48,7 +48,8 @@ export default function LibraryPage() {
   useEffect(() => { if (!loading && !user) router.push('/'); }, [user, loading, router]);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading) return;
+    if (!user) return;
     const q = query(
       collection(db, 'library'),
       where('lektorId', '==', user.uid),
