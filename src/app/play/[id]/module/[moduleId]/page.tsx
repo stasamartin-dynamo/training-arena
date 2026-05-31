@@ -132,7 +132,7 @@ function PlayModuleContent() {
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
           <h2 style={{ color: '#fff', fontWeight: 900, fontSize: '24px', margin: '0 0 8px' }}>Hotovo!</h2>
           <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 24px' }}>Odpovedel/a jsi na vsechny otazky.</p>
-          <button onClick={() => router.push(\`/play/${id}\`)} className="btn-primary" style={{ padding: '12px 24px' }}>
+          <button onClick={() => router.push(`/play/${id}`)} className="btn-primary" style={{ padding: '12px 24px' }}>
             Zpet do cekarny
           </button>
         </div>
@@ -192,7 +192,7 @@ function PlayModuleContent() {
               Otazka {questionIndex + 1} z {totalQuestions}
             </span>
             <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '4px', height: '4px', marginTop: '6px' }}>
-              <div style={{ background: '#7c3aed', borderRadius: '4px', height: '4px', width: \`${((questionIndex + 1) / totalQuestions) * 100}%\`, transition: 'width 0.3s' }} />
+              <div style={{ background: '#7c3aed', borderRadius: '4px', height: '4px', width: `${((questionIndex + 1) / totalQuestions) * 100}%`, transition: 'width 0.3s' }} />
             </div>
           </div>
         )}
@@ -201,7 +201,7 @@ function PlayModuleContent() {
             <div style={{
               width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto',
               background: timeLeft <= 5 ? 'rgba(239,68,68,0.2)' : 'rgba(124,58,237,0.2)',
-              border: \`3px solid ${timeLeft <= 5 ? '#ef4444' : '#7c3aed'}\`,
+              border: `3px solid ${timeLeft <= 5 ? '#ef4444' : '#7c3aed'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: timeLeft <= 5 ? '#ef4444' : '#a78bfa', fontWeight: 900, fontSize: '22px',
             }}>{timeLeft}</div>
@@ -229,17 +229,17 @@ function PlayModuleContent() {
               {((moduleData.options as string[]) || []).map((opt, i) => (
                 <button key={i} onClick={() => submitAnswer(opt)}
                   style={{
-                    background: \`${COLORS[i % COLORS.length]}18\`,
-                    border: \`2px solid ${COLORS[i % COLORS.length]}55\`,
+                    background: `${COLORS[i % COLORS.length]}18`,
+                    border: `2px solid ${COLORS[i % COLORS.length]}55`,
                     borderRadius: '14px', padding: '16px 20px',
                     cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                     display: 'flex', alignItems: 'center', gap: '12px',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = \`${COLORS[i % COLORS.length]}33\`; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = \`${COLORS[i % COLORS.length]}18\`; }}>
+                  onMouseEnter={e => { e.currentTarget.style.background = `${COLORS[i % COLORS.length]}33`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = `${COLORS[i % COLORS.length]}18`; }}>
                   <span style={{
                     width: '32px', height: '32px', borderRadius: '8px',
-                    background: \`${COLORS[i % COLORS.length]}33\`,
+                    background: `${COLORS[i % COLORS.length]}33`,
                     color: COLORS[i % COLORS.length], fontWeight: 900, fontSize: '14px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>{String.fromCharCode(65 + i)}</span>
