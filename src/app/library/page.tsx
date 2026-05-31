@@ -40,7 +40,7 @@ export default function LibraryPage() {
   useEffect(() => { if (!loading && !user) router.push('/'); }, [user, loading, router]);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (!user?.uid) return;
     const q = query(
       collection(db, 'library'),
       where('lektorId', '==', user.uid),
@@ -50,7 +50,7 @@ export default function LibraryPage() {
       setItems(snap.docs.map(d => ({ id: d.id, ...d.data() } as LibraryItem)));
     });
     return unsub;
-  }, [user?.uid, loading]);
+  }, [user?.uid]);
 
   // Group items by folder (setName field, or 'Bez složky')
   const folders = (() => {
