@@ -34,7 +34,7 @@ export default function Dashboard() {
     return onSnapshot(q, snap => {
       setSessions(snap.docs.map(d => ({ id: d.id, ...d.data() } as Session)));
     });
-  }, [user]);
+  }, [user, loading]);
 
   const createSession = async () => {
     if (!user || !title.trim()) return;
