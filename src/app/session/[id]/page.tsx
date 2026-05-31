@@ -175,7 +175,7 @@ export default function SessionPage() {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Report');
       const ws2 = XLSX.utils.json_to_sheet(participants.map(p => ({
-        'Přezdívka': p.nickname, 'Body': p.score, 'Tým': p.teamId || '-',
+        'Přezdívka': p.nickname, 'Tým': p.teamId || '-',
         'Připojil se': new Date(p.joinedAt).toLocaleString('cs'),
       })));
       XLSX.utils.book_append_sheet(wb, ws2, 'Účastníci');

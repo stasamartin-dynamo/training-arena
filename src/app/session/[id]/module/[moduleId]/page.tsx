@@ -421,7 +421,7 @@ function ModuleContent() {
                           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', margin: 0 }}>{team.memberIds.length} hráčů</p>
                         </div>
                       </div>
-                      <span style={{ color: team.color, fontWeight: 900, fontSize: '24px' }}>{team.score}</span>
+                      
                     </div>
                   ))}
                 </div>
