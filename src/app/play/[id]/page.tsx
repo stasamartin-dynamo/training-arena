@@ -80,7 +80,7 @@ export default function PlayPage() {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
               <div>
                 <p style={{ color: '#fbbf24', fontWeight: 700, fontSize: '20px', margin: 0 }}>{score}</p>
-                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', margin: 0 }}>bodů</p>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', margin: 0 }}></p>
               </div>
               <div>
                 <p style={{ color: '#34d399', fontWeight: 700, fontSize: '20px', margin: 0 }}>{participantCount}</p>
@@ -119,8 +119,8 @@ export default function PlayPage() {
             <div>
               <p style={{ fontSize: '48px', margin: '0 0 12px' }}>🎉</p>
               <p style={{ color: '#fff', fontWeight: 900, fontSize: '22px', margin: '0 0 8px' }}>Školení skončilo!</p>
-              <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 16px' }}>Tvé celkové skóre:</p>
-              <p style={{ color: '#fbbf24', fontWeight: 900, fontSize: '48px', margin: 0 }}>{score} b</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)', margin: '0 0 16px' }}></p>
+              <p style={{ color: '#fbbf24', fontWeight: 900, fontSize: '48px', margin: 0 }}></p>
               <p style={{ color: 'rgba(255,255,255,0.4)', margin: '8px 0 0', fontSize: '14px' }}>Děkujeme za účast!</p>
             </div>
           )}

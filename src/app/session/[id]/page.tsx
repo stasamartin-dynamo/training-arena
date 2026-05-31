@@ -213,7 +213,7 @@ export default function SessionPage() {
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: i === 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)', border: `1px solid ${i === 0 ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '10px', padding: '12px 16px' }}>
                   <span style={{ fontSize: '20px', width: '28px' }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
                   <span style={{ color: '#fff', fontWeight: 700, flex: 1 }}>{p.nickname}</span>
-                  <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '18px' }}>{p.score} b</span>
+                  <span style={{ color: '#fbbf24', fontWeight: 900, fontSize: '18px' }}></span>
                   <div style={{ display: "none" }}>
                     <div style={{ width: `${Math.min(100, (p.score / (sortedParticipants[0]?.score || 1)) * 100)}%`, background: '#fbbf24', borderRadius: '4px', height: '6px' }} />
                   </div>
@@ -260,7 +260,7 @@ export default function SessionPage() {
                             ✅ {mod.correctAnswer.length > 25 ? mod.correctAnswer.slice(0,25)+'…' : mod.correctAnswer}
                           </span>
                         )}
-                        {mod.points > 0 && (
+                        {false && (
                           <span style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 700 }}>
                             🏆 {mod.points} b
                           </span>

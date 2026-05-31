@@ -130,7 +130,7 @@ function PlayModuleContent() {
         <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏭️</div>
           <p style={{ color: '#fff', fontWeight: 700, fontSize: '20px', margin: '0 0 8px' }}>Skvěle!</p>
-          <p style={{ color: '#34d399', fontWeight: 700, fontSize: '16px', margin: '0 0 8px' }}>✅ Odpověď odeslána</p>
+          
           <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>Načítám další otázku...</p>
           {totalQuestions > 0 && (
             <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', marginTop: '12px' }}>
@@ -159,7 +159,7 @@ function PlayModuleContent() {
         <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
           <p style={{ color: '#fff', fontWeight: 700, fontSize: '22px', margin: '0 0 8px' }}>Skvěle!</p>
-          <p style={{ color: '#34d399', fontWeight: 700, fontSize: '18px', margin: '0 0 8px' }}>✅ Odpověď odeslána</p>
+          
           <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>Čekáme na ostatní...</p>
         </div>
       </main>
