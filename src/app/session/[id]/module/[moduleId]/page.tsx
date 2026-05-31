@@ -180,7 +180,7 @@ function ModuleContent() {
   const moduleTitle = { quiz: '❓ Kvíz', vote: '🗳️ Hlasování', scenario: '🎭 Scénář', gamification: '🏆 Gamifikace', reflection: '💭 Reflexe' }[type] || '📋 Modul';
 
   return (
-    <main style={{ minHeight: '100vh', className='app-bg', padding: '24px' }}>
+    <main className='app-bg' style={{ minHeight: '100vh', padding: '24px' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>

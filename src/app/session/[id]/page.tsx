@@ -191,7 +191,7 @@ export default function SessionPage() {
   // Results dashboard for finished session
   if (session.status === 'finished') {
     return (
-      <main style={{ minHeight: '100vh', className='app-bg', padding: '24px' }}>
+      <main className='app-bg' style={{ minHeight: '100vh', padding: '24px' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
@@ -335,7 +335,7 @@ export default function SessionPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', className='app-bg', padding: '24px' }}>
+    <main className='app-bg' style={{ minHeight: '100vh', padding: '24px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>

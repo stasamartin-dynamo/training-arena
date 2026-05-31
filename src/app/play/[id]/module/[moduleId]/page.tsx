@@ -110,7 +110,7 @@ function PlayModuleContent() {
   // Finished screen
   if (finished) {
     return (
-      <main style={{ minHeight: '100vh', className='app-bg', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <main className='app-bg' style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
           <h2 style={{ color: '#fff', fontWeight: 900, fontSize: '24px', margin: '0 0 8px' }}>Hotovo!</h2>
@@ -126,7 +126,7 @@ function PlayModuleContent() {
   // Waiting for next question in flow
   if (waitingNext) {
     return (
-      <main style={{ minHeight: '100vh', className='app-bg', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <main className='app-bg' style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏭️</div>
           <p style={{ color: '#fff', fontWeight: 700, fontSize: '20px', margin: '0 0 8px' }}>Skvěle!</p>
@@ -144,7 +144,7 @@ function PlayModuleContent() {
 
   if (!moduleData.started) {
     return (
-      <main style={{ minHeight: '100vh', className='app-bg', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <main className='app-bg' style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
           <p style={{ color: '#fff', fontWeight: 700, fontSize: '20px', margin: 0 }}>Lektor připravuje aktivitu...</p>
@@ -155,7 +155,7 @@ function PlayModuleContent() {
 
   if (answered && !(sessionData as Record<string, unknown>)?.setFlow) {
     return (
-      <main style={{ minHeight: '100vh', className='app-bg', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <main className='app-bg' style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
           <p style={{ color: '#fff', fontWeight: 700, fontSize: '22px', margin: '0 0 8px' }}>Skvěle!</p>
@@ -170,7 +170,7 @@ function PlayModuleContent() {
   const typeLabel: Record<string, string> = { quiz: '❓ Kvíz', vote: '🗳️ Hlasování', scenario: '🎭 Scénář', gamification: '🏆 Gamifikace', reflection: '💭 Reflexe' };
 
   return (
-    <main style={{ minHeight: '100vh', className='app-bg', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <main className='app-bg' style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ width: '100%', maxWidth: '460px' }}>
         {totalQuestions > 0 && (
           <div style={{ textAlign: 'center', marginBottom: '12px' }}>

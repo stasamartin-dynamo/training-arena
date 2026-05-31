@@ -71,7 +71,7 @@ export default function Dashboard() {
   const statusLabel: Record<string, string> = { waiting: '🟡 Čeká', active: '🟢 Aktivní', finished: '⚫ Ukončená' };
 
   return (
-    <main style={{ minHeight: '100vh', className='app-bg', padding: '24px' }}>
+    <main className='app-bg' style={{ minHeight: '100vh', padding: '24px' }}>
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
         <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)' }} />
       </div>

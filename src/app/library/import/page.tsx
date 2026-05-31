@@ -130,7 +130,7 @@ export default function ImportPage() {
   };
 
   return (
-    <main style={{ minHeight: '100vh', className='app-bg', padding: '24px' }}>
+    <main className='app-bg' style={{ minHeight: '100vh', padding: '24px' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <button onClick={() => router.push('/library')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '14px', padding: 0, marginBottom: '16px' }}>← Knihovna</button>
         <h1 style={{ color: '#fff', fontWeight: 900, fontSize: '26px', margin: '0 0 8px' }}>📥 Import z Excelu</h1>
