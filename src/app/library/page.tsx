@@ -302,8 +302,9 @@ export default function LibraryPage() {
               return (
                 <div key={folderName}>
                   {/* Folder header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button onClick={() => toggleFolder(folderName)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', background: isOpen ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isOpen ? 'rgba(124,58,237,0.4)' : 'rgba(255,255,255,0.1)'}`, borderRadius: isOpen ? '16px 16px 0 0' : '16px', padding: '14px 18px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s' }}>
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', background: isOpen ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isOpen ? 'rgba(124,58,237,0.4)' : 'rgba(255,255,255,0.1)'}`, borderRadius: isOpen ? '16px 16px 0 0' : '16px', padding: '14px 18px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s' }}>
                     <span style={{ fontSize: '20px' }}>{isOpen ? '📂' : '📁'}</span>
                     <div style={{ flex: 1 }}>
                       <span style={{ color: '#fff', fontWeight: 700, fontSize: '15px' }}>{folderName}</span>
@@ -321,6 +322,11 @@ export default function LibraryPage() {
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>{folderItems.length} položek</span>
                     <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '16px', transition: 'transform 0.2s', transform: isOpen ? 'rotate(90deg)' : 'none' }}>›</span>
                   </button>
+                  <button onClick={() => removeFolder(folderName, folderItems)}
+                    style={{ background: 'rgba(239,68,68,0.15)', border: 'none', color: '#f87171', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', flexShrink: 0 }}>
+                    🗑️
+                  </button>
+                  </div>
                   {/* Folder contents */}
                   {isOpen && (
                     <div style={{ border: '1px solid rgba(124,58,237,0.3)', borderTop: 'none', borderRadius: '0 0 16px 16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(124,58,237,0.05)' }}>
