@@ -68,7 +68,7 @@ function PlayModuleContent() {
         setUserAnswer('');
         setOpenAnswer('');
         setWaitingNext(false);
-        router.replace(\`/play/${id}/module/${data.currentModule}\`);
+        router.replace(`/play/${id}/module/${data.currentModule}`);
       }
       if (data.setFlowFinished && waitingNext) {
         setFinished(true);
