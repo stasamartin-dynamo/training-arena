@@ -31,18 +31,16 @@ export default function SetsPage() {
   useEffect(() => { if (!loading && !user) router.push('/'); }, [user, loading, router]);
 
   useEffect(() => {
-    if (loading) return;
     if (!user) return;
     const q = query(collection(db, 'sets'), where('lektorId', '==', user.uid), orderBy('updatedAt', 'desc'));
     return onSnapshot(q, snap => setSets(snap.docs.map(d => ({ id: d.id, ...d.data() } as TrainingSet))));
-  }, [user]);
+  }, [user?.uid]);
 
   useEffect(() => {
-    if (loading) return;
     if (!user) return;
     const q = query(collection(db, 'library'), where('lektorId', '==', user.uid), orderBy('updatedAt', 'desc'));
     return onSnapshot(q, snap => setLibrary(snap.docs.map(d => ({ id: d.id, ...d.data() } as LibraryItem))));
-  }, [user]);
+  }, [user?.uid]);
 
   const openNew = () => {
     setEditing(null);

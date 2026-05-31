@@ -24,17 +24,17 @@ export default function Dashboard() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    if (loading) return;
     if (!user) return;
     const q = query(
       collection(db, 'sessions'),
       where('lektorId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-    return onSnapshot(q, snap => {
+    const unsub = onSnapshot(q, snap => {
       setSessions(snap.docs.map(d => ({ id: d.id, ...d.data() } as Session)));
     });
-  }, [user, loading]);
+    return unsub;
+  }, [user?.uid]);
 
   const createSession = async () => {
     if (!user || !title.trim()) return;
