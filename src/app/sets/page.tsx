@@ -31,7 +31,7 @@ export default function SetsPage() {
   useEffect(() => { if (!loading && !user) router.push('/'); }, [user, loading, router]);
 
   useEffect(() => {
-    if (!user) return;
+    if (loading || !user) return;
     const q = query(collection(db, 'sets'), where('lektorId', '==', user.uid), orderBy('updatedAt', 'desc'));
     return onSnapshot(q, snap => setSets(snap.docs.map(d => ({ id: d.id, ...d.data() } as TrainingSet))));
   }, [user]);
