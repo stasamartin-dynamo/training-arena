@@ -4,6 +4,12 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/icon-app.png",
+    apple: "/icon-app.png",
+    shortcut: "/icon-app.png",
+  },
+  manifest: "/manifest.json",
   title: 'Training Arena',
   description: 'Interaktivní platforma pro lektory a školitele',
 };

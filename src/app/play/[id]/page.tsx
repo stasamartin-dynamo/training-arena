@@ -61,7 +61,7 @@ export default function PlayPage() {
   return (
     <main style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
+      className='app-bg',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }}>
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}>

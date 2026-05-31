@@ -41,7 +41,7 @@ export default function Home() {
   return (
     <main style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f0a1e 0%, #1a0533 50%, #0f1a2e 100%)',
+      className='app-bg',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

@@ -34,7 +34,7 @@ body {
 }
 
 .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
-.glass { background: rgba(255,255,255,0.07); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.12); }
+.glass { background: rgba(240,240,255,0.13); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.12); }
 .glass-dark { background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
 
 .btn-primary {
@@ -94,4 +94,25 @@ textarea.input-field { resize: none; }
   border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
+}
+
+.app-bg {
+  background-image: url('/bg-app.png');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+.app-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 5, 25, 0.55);
+  z-index: 0;
+  pointer-events: none;
+}
+.app-bg > * {
+  position: relative;
+  z-index: 1;
 }
