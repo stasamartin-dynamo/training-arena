@@ -37,10 +37,11 @@ export default function LibraryPage() {
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   const [view, setView] = useState<'folders' | 'all'>('folders');
 
-  useEffect(() => { if (!loading && !user) router.push('/'); }, [user, loading, router]);
+  useEffect(() => { if (!user && !loading) router.push('/'); }, [user, loading, router]);
 
   useEffect(() => {
     if (!user?.uid) return;
+    // user.uid je garantovano k dispozici
     const q = query(
       collection(db, 'library'),
       where('lektorId', '==', user.uid),
@@ -126,6 +127,8 @@ export default function LibraryPage() {
 
   const filtered = filterType === 'all' ? items : items.filter(i => i.type === filterType);
   const typeInfo = (type: string) => MODULE_TYPES.find(m => m.type === type) || MODULE_TYPES[0];
+
+  if (!user) return <div style={{ minHeight: '100vh', background: '#0f0a1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Nacitani...</div>;
 
   if (loading) return <div style={{ minHeight: '100vh', background: '#0f0a1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Načítání...</div>;
 
