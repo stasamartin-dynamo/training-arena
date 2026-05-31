@@ -11,7 +11,7 @@ export default function PlayPage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState('');
-  const [score, setScore] = useState(0);
+
   const [participantCount, setParticipantCount] = useState(0);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function PlayPage() {
       const participantId = localStorage.getItem('participantId');
       if (participantId) {
         const me = snap.docs.find(d => d.id === participantId);
-        if (me) setScore(me.data().score || 0);
+
       }
     });
     return unsub;
@@ -79,7 +79,7 @@ export default function PlayPage() {
             <p style={{ color: '#fff', fontWeight: 900, fontSize: '24px', margin: '0 0 8px' }}>{nickname}</p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
               <div>
-                <p style={{ color: '#fbbf24', fontWeight: 700, fontSize: '20px', margin: 0 }}>{score}</p>
+                
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', margin: 0 }}></p>
               </div>
               <div>
