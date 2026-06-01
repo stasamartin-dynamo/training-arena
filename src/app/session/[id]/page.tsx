@@ -117,15 +117,25 @@ export default function SessionPage() {
     toast.success('Session ukončena');
   };
 
+  const shuffleOptions = (options: string[], correctAnswer: string) => {
+    const shuffled = [...options].sort(() => Math.random() - 0.5);
+    return { options: shuffled, correctAnswer };
+  };
+
   const launchSet = async (set: TrainingSet) => {
     if (!set.items || set.items.length === 0) { toast.error('Sada je prázdná'); return; }
     toast.loading('Připravuji sadu...');
     const moduleIds: string[] = [];
     for (const item of set.items) {
       const moduleRef = await addDoc(collection(db, 'sessions', id as string, 'modules'), {
-        type: item.type, question: item.question, options: item.options || [],
+        ...(() => {
+          const rawOptions = (item.options || []).filter((o: string) => o);
+          const correctAns = (item as {correctAnswer?: string}).correctAnswer || '';
+          const shuffled = [...rawOptions].sort(() => Math.random() - 0.5);
+          return { options: shuffled, correctAnswer: correctAns };
+        })(),
+        type: item.type, question: item.question,
         timeLimit: item.timeLimit || 30, title: item.title || '',
-        correctAnswer: (item as {correctAnswer?: string}).correctAnswer || '',
         points: Number((item as {points?: number}).points) || 5,
         status: 'pending', started: false, showResults: false, preloaded: true,
         createdAt: Date.now(),
@@ -147,7 +157,11 @@ export default function SessionPage() {
   const launchModule = async (type: string, item?: LibraryItem) => {
     const moduleRef = await addDoc(collection(db, 'sessions', id as string, 'modules'), {
       type, status: 'active', started: false, showResults: false, createdAt: Date.now(),
-      ...(item ? { question: item.question, options: item.options, timeLimit: item.timeLimit, preloaded: true } : {}),
+      ...(item ? (() => {
+        const rawOptions = (item.options || []).filter((o: string) => o);
+        const shuffled = [...rawOptions].sort(() => Math.random() - 0.5);
+        return { question: item.question, options: shuffled, correctAnswer: (item as {correctAnswer?: string}).correctAnswer || '', timeLimit: item.timeLimit, preloaded: true };
+      })() : {}),
     });
     await updateDoc(doc(db, 'sessions', id as string), { currentModule: moduleRef.id });
     router.push(`/session/${id}/module/${moduleRef.id}?type=${type}${item ? '&preloaded=1' : ''}`);
