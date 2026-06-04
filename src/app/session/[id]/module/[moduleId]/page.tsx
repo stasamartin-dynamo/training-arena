@@ -85,37 +85,7 @@ function ModuleContent() {
     });
     return unsub;
   }, [id]);
-
-  // Auto-advance set flow when all participants answered
-  useEffect(() => {
-    if (!id || !moduleId) return;
-    const sesData = session as Record<string, unknown>;
-    const setFlow = sesData?.setFlow as string[] | undefined;
-    if (!setFlow) return;
-    if (!started) return;
-    if (participants.length === 0) return;
-    if (answers.length < participants.length) return;
-    // All answered — advance after 2s
-    const timer = setTimeout(async () => {
-      const currentIndex = sesData.setFlowIndex as number || 0;
-      const nextIndex = currentIndex + 1;
-      if (nextIndex >= setFlow.length) {
-        await updateDoc(doc(db, 'sessions', id as string), { setFlowFinished: true, currentModule: null });
-        toast.success('Sada dokončena!');
-        router.push(`/session/${id}`);
-      } else {
-        const nextModuleId = setFlow[nextIndex];
-        await updateDoc(doc(db, 'sessions', id as string, 'modules', nextModuleId), {
-          started: true, startedAt: Date.now(),
-        });
-        await updateDoc(doc(db, 'sessions', id as string), {
-          currentModule: nextModuleId, setFlowIndex: nextIndex,
-        });
-        router.push(`/session/${id}/module/${nextModuleId}?setflow=1`);
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [answers.length, participants.length, started, id, moduleId, session, router]);
+  // Auto-advance removed - participants advance independently
 
   const startModule = async () => {
     const filteredOptions = type === 'reflection' ? [] : options.filter(o => o.trim());
