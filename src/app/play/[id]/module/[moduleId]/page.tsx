@@ -115,7 +115,15 @@ function PlayModuleContent() {
       const sesSnap = await getDoc(doc(db, 'sessions', id as string));
       const sesData = sesSnap.data();
       if (sesData?.setFlow) {
-        setWaitingNext(true);
+        const setFlow = sesData.setFlow as string[];
+        const currentIndex = setFlow.indexOf(currentModuleId);
+        const nextIndex = currentIndex + 1;
+        if (nextIndex >= setFlow.length) {
+          setFinished(true);
+        } else {
+          const nextModuleId = setFlow[nextIndex];
+          router.replace(`/play/${id}/module/${nextModuleId}`);
+        }
       }
     } catch { toast.error('Chyba pri odesilani'); }
   }, [answered, id, currentModuleId, timeLeft]);
