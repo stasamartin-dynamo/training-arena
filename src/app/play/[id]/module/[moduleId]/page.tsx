@@ -148,22 +148,7 @@ function PlayModuleContent() {
     );
   }
 
-  if (waitingNext) {
-    return (
-      <main className="app-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <div className="glass card" style={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏭️</div>
-          <p style={{ color: '#fff', fontWeight: 700, fontSize: '20px', margin: '0 0 8px' }}>Skvele!</p>
-          <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0 }}>Nacitam dalsi otazku...</p>
-          {totalQuestions > 0 && (
-            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '13px', marginTop: '12px' }}>
-              {questionIndex + 1} / {totalQuestions}
-            </p>
-          )}
-        </div>
-      </main>
-    );
-  }
+
 
   if (!moduleData.started) {
     return (
